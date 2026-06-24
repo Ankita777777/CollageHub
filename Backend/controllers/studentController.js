@@ -1,6 +1,6 @@
 const Student = require('../models/Student')
 const User = require('../models/User')
-const Attendance = require('../models/Result')
+const Attendance = require('../models/Attendence')
 const Result = require('../models/Result')
 const Leave= require('../models/Leave')
 const Payment = require('../models/Payment')
@@ -17,7 +17,7 @@ const getProfile = async(req,res)=>{
 // PUT /api/students/profile
  
 const updateProfile = async(req,res) =>{
-    const student = await Student.findOne({user:req.user>-id})
+    const student = await Student.findOne({user:req.user>_id})
     if(!student) return res.status(404).json({message: 'Student not found'})
 
         const {phone, address}= req.body
@@ -32,7 +32,7 @@ const updateProfile = async(req,res) =>{
 
     const getAttendence = async(req, res)=>{
         const student = await Student.findOne({user:req.user._id})
-        const records= await getAttendence.find({student: student._id})
+        const records= await Attendence.find({student: student._id})
           .populate('course','name code')
           .sort({date:-1})
 
@@ -70,7 +70,7 @@ const updateProfile = async(req,res) =>{
     //Get /api/students/fee
     const getFreeStatus = async(req,res)=>{
       const student = await Student.findOne({user:req.user._id})
-      const payments = await Payment.find({student._id}).sprt({ createdAt: -1})
+      const payments = await Payment.find({student:student._id}).sort({ createdAt: -1})
        res.json({feeStatus : student.feeStatus, payments})
     }
 
@@ -90,5 +90,5 @@ const getLeaves = async( req,res)=>{
   res.json(leaves)
 }
 
-module.exports= { getProfile, updateProfile, getAttendence, getResults,getFreeStatus, applyLeave, getLeaves }
+module.exports= { getProfile, updateProfile, getAttendance, getResults,getFreeStatus, applyLeave, getLeaves }
 
