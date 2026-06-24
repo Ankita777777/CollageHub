@@ -6,7 +6,6 @@ const Leave= require('../models/Leave')
 const Payment = require('../models/Payment')
 
 // GET /api/students/profile
-
 const getProfile = async(req,res)=>{
     const student = await Student.findOne({user:req.user._id})
     .populate('user','name email photo')
@@ -34,7 +33,7 @@ const updateProfile = async(req,res) =>{
     const getAttendence = async(req, res)=>{
         const student = await Student.findOne({user:req.user._id})
         const records= await getAttendence.find({student: student._id})
-          .pupulate('course','name code')
+          .populate('course','name code')
           .sort({date:-1})
 
           //calculate percentage per subject
@@ -57,10 +56,39 @@ const updateProfile = async(req,res) =>{
 
   res.json({ records, summary: result })
 
+    }
 
+    //Get  /api/students/results
+    const getResults = async(req,res)=>{
+      const student = await Student.findOne({user: req.user._id})
+      const results= await Result.find({student:student._id})
+      .populate('course', 'name code creditHours')
+      .sort({semester: 1})
+      res.json(results)
+    }
 
-  
+    //Get /api/students/fee
+    const getFreeStatus = async(req,res)=>{
+      const student = await Student.findOne({user:req.user._id})
+      const payments = await Payment.find({student._id}).sprt({ createdAt: -1})
+       res.json({feeStatus : student.feeStatus, payments})
+    }
+
+    //Post /api/students/leave
+    const applyLeave = async(req,res)=>{
+      const student = await Student.findOne({user: req.user._id})
+      const {fromDate, toDate, reason} = req.body
+      const leave = await Leave.create({student: student._id , fromDate, toDate , reason})
+      res.status(201).json({message: 'Leave applied', leave})
     }
 
 
+//get /api/students/leave
+const getLeaves = async( req,res)=>{
+  const student = await Student.findOne({user: req.user._id})
+  const leaves = await Leave.find({student:student._id}).sort({createdAt: -1})
+  res.json(leaves)
+}
+
+module.exports= { getProfile, updateProfile, getAttendence, getResults,getFreeStatus, applyLeave, getLeaves }
 
