@@ -82,7 +82,6 @@ const updateProfile = async(req,res) =>{
       res.status(201).json({message: 'Leave applied', leave})
     }
 
-
 //get /api/students/leave
 const getLeaves = async( req,res)=>{
   const student = await Student.findOne({user: req.user._id})
