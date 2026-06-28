@@ -6,7 +6,7 @@ import About          from './pages/About'
 import Courses        from './pages/Courses'
 import Admissions     from './pages/Admissions'
 import Contact        from './pages/Contact'
-import Notices        from './pages/Notices'
+import Notices        from './pages/Notice'
 import Login          from './pages/Login'
 import Register       from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
@@ -40,7 +40,7 @@ function App() {
         <Route path="/courses"                element={<Courses />} />
         <Route path="/admissions"             element={<Admissions />} />
         <Route path="/contact"                element={<Contact />} />
-        <Route path="/notices"                element={<Notices />} />
+        <Route path="/notice"                element={<Notices />} />
         <Route path="/login"                  element={<Login />} />
         <Route path="/register"               element={<Register />} />
         <Route path="/forgot-password"        element={<ForgotPassword />} />
