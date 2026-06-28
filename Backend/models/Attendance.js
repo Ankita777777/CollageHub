@@ -8,4 +8,4 @@ const attendanceSchema = new mongoose.Schema({
     markedBy: {type: mongoose.Schema.Types.ObjectId, ref:'User'},  
 },{timestamps: true})
 
-module.exports= mongoose.model('Attendence', attendanceSchema)
+module.exports= mongoose.model('Attendance', attendanceSchema)

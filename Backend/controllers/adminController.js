@@ -14,7 +14,7 @@ const getDashboardStats = async (req, res) => {
     { $group: { _id: null, total: { $sum: '$amount' } } }
   ])
   res.json({
-    totalStudents,
+    totalStudents, 
     totalTeachers,
     totalCourses,
     totalRevenue: totalRevenue[0]?.total || 0,

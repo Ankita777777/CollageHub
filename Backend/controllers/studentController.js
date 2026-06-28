@@ -1,6 +1,6 @@
 const Student = require('../models/Student')
 const User = require('../models/User')
-const Attendance = require('../models/Attendence')
+const Attendance = require('../models/Attendance')
 const Result = require('../models/Result')
 const Leave= require('../models/Leave')
 const Payment = require('../models/Payment')
@@ -30,7 +30,7 @@ const updateProfile = async(req,res) =>{
 
     //@GET /api/students/attendence
 
-    const getAttendence = async(req, res)=>{
+    const getAttendance = async(req, res)=>{
         const student = await Student.findOne({user:req.user._id})
         const records= await Attendence.find({student: student._id})
           .populate('course','name code')
@@ -68,7 +68,7 @@ const updateProfile = async(req,res) =>{
     }
 
     //Get /api/students/fee
-    const getFreeStatus = async(req,res)=>{
+    const getFeeStatus = async(req,res)=>{
       const student = await Student.findOne({user:req.user._id})
       const payments = await Payment.find({student:student._id}).sort({ createdAt: -1})
        res.json({feeStatus : student.feeStatus, payments})
@@ -89,5 +89,5 @@ const getLeaves = async( req,res)=>{
   res.json(leaves)
 }
 
-module.exports= { getProfile, updateProfile, getAttendance, getResults,getFreeStatus, applyLeave, getLeaves }
+module.exports= { getProfile, updateProfile, getAttendance, getResults,getFeeStatus, applyLeave, getLeaves }
 
