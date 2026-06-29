@@ -45,7 +45,7 @@ const Home = () => {
         <Box>
           <Chip label="Est. 2001" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', mb: 2 }} />
           <Typography variant="h2" fontWeight={800} sx={{ mb: 2, lineHeight: 1.2 }}>
-            Pokhara Management<br />College
+           Patan Multiple<br />Campus
           </Typography>
           <Typography variant="h6" sx={{ opacity: 0.85, mb: 4, maxWidth: 500 }}>
             Shaping future leaders with quality education, modern facilities, and experienced faculty.

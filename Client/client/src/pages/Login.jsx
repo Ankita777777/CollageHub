@@ -64,7 +64,7 @@ const Login = () => {
               PMC Portal
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Pokhara Management College
+              Patan Multiple Campus
             </Typography>
           </Box>
 
