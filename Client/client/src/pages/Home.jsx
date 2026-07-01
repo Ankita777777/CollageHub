@@ -39,7 +39,7 @@ const Home = () => {
       {/* Hero */}
       <Box sx={{
         minHeight: '90vh', display: 'flex', alignItems: 'center',
-        background: 'linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #1E88E5 100%)',
+        background: 'linear-gradient(135deg, #a8c6f1 0%, #5c7086 50%, #1E88E5 100%)',
         color: 'white', px: { xs: 3, md: 10 }
       }}>
         <Box>
