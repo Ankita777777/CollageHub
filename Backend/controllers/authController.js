@@ -1,7 +1,6 @@
-const crypto    = require('crypto')
-const User      = require('../models/User')
-const jwt       = require('jsonwebtoken')
-const sendEmail = require('../utils/sendEmail')
+const crypto = require('crypto')
+const User   = require('../models/User')
+const jwt    = require('jsonwebtoken')
 
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -29,7 +28,7 @@ const register = async (req, res) => {
       role: role || 'student',
     })
 
-    res.status(201).json({
+    return res.status(201).json({
       _id:   user._id,
       name:  user.name,
       email: user.email,
@@ -38,7 +37,7 @@ const register = async (req, res) => {
     })
   } catch (error) {
     console.error('Register error:', error.message)
-    res.status(500).json({ message: error.message || 'Registration failed' })
+    return res.status(500).json({ message: error.message || 'Registration failed' })
   }
 }
 
@@ -65,7 +64,7 @@ const login = async (req, res) => {
       return res.status(403).json({ message: 'Account deactivated. Contact admin.' })
     }
 
-    res.json({
+    return res.json({
       _id:   user._id,
       name:  user.name,
       email: user.email,
@@ -75,7 +74,7 @@ const login = async (req, res) => {
     })
   } catch (error) {
     console.error('Login error:', error.message)
-    res.status(500).json({ message: error.message || 'Login failed' })
+    return res.status(500).json({ message: error.message || 'Login failed' })
   }
 }
 
@@ -84,9 +83,9 @@ const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password')
     if (!user) return res.status(404).json({ message: 'User not found' })
-    res.json(user)
+    return res.json(user)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    return res.status(500).json({ message: error.message })
   }
 }
 
@@ -101,7 +100,7 @@ const updateProfile = async (req, res) => {
     user.photo = photo || user.photo
     await user.save()
 
-    res.json({
+    return res.json({
       _id:   user._id,
       name:  user.name,
       email: user.email,
@@ -109,7 +108,7 @@ const updateProfile = async (req, res) => {
       photo: user.photo,
     })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    return res.status(500).json({ message: error.message })
   }
 }
 
@@ -122,22 +121,22 @@ const changePassword = async (req, res) => {
       return res.status(400).json({ message: 'Please provide both passwords' })
     }
 
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' })
+    }
+
     const user = await User.findById(req.user._id)
     const isMatch = await user.matchPassword(currentPassword)
     if (!isMatch) {
       return res.status(401).json({ message: 'Current password is incorrect' })
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'New password must be at least 6 characters' })
-    }
-
     user.password = newPassword
     await user.save()
 
-    res.json({ message: 'Password changed successfully' })
+    return res.json({ message: 'Password changed successfully' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    return res.status(500).json({ message: error.message })
   }
 }
 
@@ -155,46 +154,47 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: 'No account found with that email' })
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex')
-
-    user.resetPasswordToken  = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex')
+    const resetToken         = crypto.randomBytes(32).toString('hex')
+    user.resetPasswordToken  = crypto.createHash('sha256').update(resetToken).digest('hex')
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000
-
     await user.save({ validateBeforeSave: false })
 
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+    console.log('🔗 Reset URL:', resetUrl)
 
-    try {
-      await sendEmail({
-        to:      user.email,
-        subject: 'PMC College — Password Reset',
-        html: `
-          <h2 style="color:#1565C0;">Password Reset Request</h2>
-          <p>Hello <strong>${user.name}</strong>,</p>
-          <p>Click below to reset your password:</p>
-          <a href="${resetUrl}"
-            style="display:inline-block;background:#1565C0;color:white;
-            padding:12px 24px;border-radius:6px;text-decoration:none;margin:16px 0;">
-            Reset My Password
-          </a>
-          <p>Expires in <strong>10 minutes</strong>.</p>
-          <p>If you did not request this, ignore this email.</p>
-        `,
-      })
-
-      res.json({ message: `Reset link sent to ${email}` })
-    } catch (emailErr) {
-      user.resetPasswordToken  = undefined
-      user.resetPasswordExpire = undefined
-      await user.save({ validateBeforeSave: false })
-      res.status(500).json({ message: 'Email could not be sent. Try again later.' })
+    // Only send email if SMTP is configured
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const sendEmail = require('../utils/sendEmail')
+        await sendEmail({
+          to:      user.email,
+          subject: 'PMC College — Password Reset',
+          html: `
+            <h2>Password Reset</h2>
+            <p>Hello ${user.name},</p>
+            <a href="${resetUrl}">Click here to reset your password</a>
+            <p>Expires in 10 minutes.</p>
+          `,
+        })
+        return res.json({ message: `Reset link sent to ${email}` })
+      } catch (emailErr) {
+        console.error('Email error:', emailErr.message)
+        user.resetPasswordToken  = undefined
+        user.resetPasswordExpire = undefined
+        await user.save({ validateBeforeSave: false })
+        return res.status(500).json({ message: 'Email could not be sent' })
+      }
     }
+
+    // No SMTP — return token for testing
+    return res.json({
+      message:    'Reset token created (check terminal for URL)',
+      resetToken,
+      resetUrl,
+    })
   } catch (error) {
     console.error('Forgot password error:', error.message)
-    res.status(500).json({ message: error.message || 'Something went wrong' })
+    return res.status(500).json({ message: error.message || 'Something went wrong' })
   }
 }
 
@@ -222,7 +222,7 @@ const resetPassword = async (req, res) => {
     })
 
     if (!user) {
-      return res.status(400).json({ message: 'Reset link is invalid or expired' })
+      return res.status(400).json({ message: 'Reset link is invalid or has expired' })
     }
 
     user.password            = password
@@ -230,13 +230,13 @@ const resetPassword = async (req, res) => {
     user.resetPasswordExpire = undefined
     await user.save()
 
-    res.json({
+    return res.json({
       message: 'Password reset successful. You can now login.',
       token:   generateToken(user._id),
     })
   } catch (error) {
     console.error('Reset password error:', error.message)
-    res.status(500).json({ message: error.message || 'Password reset failed' })
+    return res.status(500).json({ message: error.message || 'Password reset failed' })
   }
 }
 
