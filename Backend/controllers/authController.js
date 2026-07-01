@@ -3,15 +3,12 @@ const User      = require('../models/User')
 const jwt       = require('jsonwebtoken')
 const sendEmail = require('../utils/sendEmail')
 
-// helper
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d',
   })
 
-// ─────────────────────────────────────────────────
 // @POST /api/auth/register
-// ─────────────────────────────────────────────────
 const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body
@@ -32,23 +29,6 @@ const register = async (req, res) => {
       role: role || 'student',
     })
 
-    // Send welcome email
-    try {
-      await sendEmail({
-        to:      email,
-        subject: 'Welcome to PMC College Portal',
-        html: `
-          <h2>Welcome ${name}!</h2>
-          <p>Your account has been created successfully.</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Role:</strong> ${role || 'student'}</p>
-          <p>You can now login to the PMC College Portal.</p>
-        `,
-      })
-    } catch (emailErr) {
-      console.log('Welcome email failed (non-critical):', emailErr.message)
-    }
-
     res.status(201).json({
       _id:   user._id,
       name:  user.name,
@@ -57,14 +37,12 @@ const register = async (req, res) => {
       token: generateToken(user._id),
     })
   } catch (error) {
-    console.error('Register error:', error)
+    console.error('Register error:', error.message)
     res.status(500).json({ message: error.message || 'Registration failed' })
   }
 }
 
-// ─────────────────────────────────────────────────
 // @POST /api/auth/login
-// ─────────────────────────────────────────────────
 const login = async (req, res) => {
   try {
     const { email, password } = req.body
@@ -96,14 +74,12 @@ const login = async (req, res) => {
       token: generateToken(user._id),
     })
   } catch (error) {
-    console.error('Login error:', error)
+    console.error('Login error:', error.message)
     res.status(500).json({ message: error.message || 'Login failed' })
   }
 }
 
-// ─────────────────────────────────────────────────
 // @GET /api/auth/me
-// ─────────────────────────────────────────────────
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password')
@@ -114,9 +90,7 @@ const getMe = async (req, res) => {
   }
 }
 
-// ─────────────────────────────────────────────────
 // @PUT /api/auth/update-profile
-// ─────────────────────────────────────────────────
 const updateProfile = async (req, res) => {
   try {
     const { name, photo } = req.body
@@ -139,19 +113,23 @@ const updateProfile = async (req, res) => {
   }
 }
 
-// ─────────────────────────────────────────────────
 // @PUT /api/auth/change-password
-// ─────────────────────────────────────────────────
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body
 
-    const user = await User.findById(req.user._id)
-    if (!user) return res.status(404).json({ message: 'User not found' })
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Please provide both passwords' })
+    }
 
+    const user = await User.findById(req.user._id)
     const isMatch = await user.matchPassword(currentPassword)
     if (!isMatch) {
       return res.status(401).json({ message: 'Current password is incorrect' })
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters' })
     }
 
     user.password = newPassword
@@ -163,9 +141,7 @@ const changePassword = async (req, res) => {
   }
 }
 
-// ─────────────────────────────────────────────────
 // @POST /api/auth/forgot-password
-// ─────────────────────────────────────────────────
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body
@@ -179,14 +155,13 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: 'No account found with that email' })
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex')
 
     user.resetPasswordToken  = crypto
       .createHash('sha256')
       .update(resetToken)
       .digest('hex')
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000  // 10 mins
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000
 
     await user.save({ validateBeforeSave: false })
 
@@ -195,45 +170,35 @@ const forgotPassword = async (req, res) => {
     try {
       await sendEmail({
         to:      user.email,
-        subject: 'PMC College — Password Reset Request',
+        subject: 'PMC College — Password Reset',
         html: `
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-            <h2 style="color:#1565C0;">Password Reset Request</h2>
-            <p>Hello <strong>${user.name}</strong>,</p>
-            <p>You requested to reset your password. Click the button below:</p>
-            <a href="${resetUrl}"
-              style="display:inline-block;background:#1565C0;color:white;
-              padding:12px 24px;border-radius:6px;text-decoration:none;
-              font-weight:bold;margin:16px 0;">
-              Reset My Password
-            </a>
-            <p style="color:#666;">This link will expire in <strong>10 minutes</strong>.</p>
-            <p style="color:#666;">If you did not request this, ignore this email.</p>
-            <hr/>
-            <p style="color:#999;font-size:12px;">PMC College Portal</p>
-          </div>
+          <h2 style="color:#1565C0;">Password Reset Request</h2>
+          <p>Hello <strong>${user.name}</strong>,</p>
+          <p>Click below to reset your password:</p>
+          <a href="${resetUrl}"
+            style="display:inline-block;background:#1565C0;color:white;
+            padding:12px 24px;border-radius:6px;text-decoration:none;margin:16px 0;">
+            Reset My Password
+          </a>
+          <p>Expires in <strong>10 minutes</strong>.</p>
+          <p>If you did not request this, ignore this email.</p>
         `,
       })
 
       res.json({ message: `Reset link sent to ${email}` })
     } catch (emailErr) {
-      // Rollback token if email fails
       user.resetPasswordToken  = undefined
       user.resetPasswordExpire = undefined
       await user.save({ validateBeforeSave: false })
-
-      console.error('Email send error:', emailErr)
       res.status(500).json({ message: 'Email could not be sent. Try again later.' })
     }
   } catch (error) {
-    console.error('Forgot password error:', error)
+    console.error('Forgot password error:', error.message)
     res.status(500).json({ message: error.message || 'Something went wrong' })
   }
 }
 
-// ─────────────────────────────────────────────────
 // @POST /api/auth/reset-password/:token
-// ─────────────────────────────────────────────────
 const resetPassword = async (req, res) => {
   try {
     const { password } = req.body
@@ -246,7 +211,6 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Password must be at least 6 characters' })
     }
 
-    // Hash the token from URL and compare
     const hashedToken = crypto
       .createHash('sha256')
       .update(req.params.token)
@@ -258,37 +222,20 @@ const resetPassword = async (req, res) => {
     })
 
     if (!user) {
-      return res.status(400).json({ message: 'Reset link is invalid or has expired' })
+      return res.status(400).json({ message: 'Reset link is invalid or expired' })
     }
 
-    // Set new password
     user.password            = password
     user.resetPasswordToken  = undefined
     user.resetPasswordExpire = undefined
     await user.save()
-
-    // Send confirmation email
-    try {
-      await sendEmail({
-        to:      user.email,
-        subject: 'PMC College — Password Changed Successfully',
-        html: `
-          <h2 style="color:#1565C0;">Password Changed</h2>
-          <p>Hello <strong>${user.name}</strong>,</p>
-          <p>Your password has been reset successfully.</p>
-          <p>If you did not do this, contact admin immediately.</p>
-        `,
-      })
-    } catch (e) {
-      console.log('Confirmation email failed (non-critical)')
-    }
 
     res.json({
       message: 'Password reset successful. You can now login.',
       token:   generateToken(user._id),
     })
   } catch (error) {
-    console.error('Reset password error:', error)
+    console.error('Reset password error:', error.message)
     res.status(500).json({ message: error.message || 'Password reset failed' })
   }
 }

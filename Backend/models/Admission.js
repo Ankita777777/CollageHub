@@ -8,7 +8,7 @@ const admissionSchema = new mongoose.Schema({
     program: {type: String, required:true},
     lastSchool :{ type:String, required: true},
     percentage:{type:String, required:true},
-    message:{type:string},
+    message:{type:String},
 
     status:{
         type:String,
