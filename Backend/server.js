@@ -28,15 +28,15 @@ app.get('/api/test', (req, res) => {
 // then uncomment one at a time to find which one crashes
 
 app.use('/api/auth',       require('./routes/authRoutes'))
-// app.use('/api/students',   require('./routes/studentRoutes'))
-// app.use('/api/teachers',   require('./routes/teacherRoutes'))
-// app.use('/api/admin',      require('./routes/adminRoutes'))
-// app.use('/api/results',    require('./routes/resultRoutes'))
-// app.use('/api/attendance', require('./routes/attendanceRoutes'))
-// app.use('/api/notices',    require('./routes/noticeRoutes'))
-// app.use('/api/payments',   require('./routes/paymentRoutes'))
-// app.use('/api/admissions', require('./routes/admissionRoutes'))
-// app.use('/api/contact',    require('./routes/contactRoutes'))
+app.use('/api/students',   require('./routes/studentRoutes'))
+app.use('/api/teachers',   require('./routes/teacherRoutes'))
+app.use('/api/admin',      require('./routes/adminRoutes'))
+app.use('/api/results',    require('./routes/resultRoutes'))
+app.use('/api/attendance', require('./routes/attendanceRoutes'))
+app.use('/api/notices',    require('./routes/noticeRoutes'))
+app.use('/api/payments',   require('./routes/paymentRoutes'))
+app.use('/api/admissions', require('./routes/admissionRoutes'))
+app.use('/api/contact',    require('./routes/contactRoutes'))
 
 // Error handler
 app.use((err, req, res, next) => {

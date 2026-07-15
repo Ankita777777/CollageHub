@@ -1,22 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { sendContact, resetContact } from '../features/contact/contactSlice'
 import {
   Container, Grid, Typography, Box, Card, CardContent,
-  TextField, Button, Alert
+  TextField, Button, Alert, CircularProgress
 } from '@mui/material'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
-import PhoneIcon from '@mui/icons-material/Phone'
-import EmailIcon from '@mui/icons-material/Email'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+import PhoneIcon      from '@mui/icons-material/Phone'
+import EmailIcon      from '@mui/icons-material/Email'
+import Navbar  from '../components/Navbar'
+import Footer  from '../components/Footer'
 
 const Contact = () => {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
-  const [success, setSuccess] = useState(false)
+  const dispatch = useDispatch()
+  const { loading, error, success, message } = useSelector((state) => state.contact)
+
+  const [form, setForm] = useState({
+    name: '', email: '', subject: '', message: ''
+  })
+
+  useEffect(() => {
+    return () => dispatch(resetContact())
+  }, [dispatch])
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    setSuccess(true)
-    setForm({ name: '', email: '', subject: '', message: '' })
+    dispatch(sendContact(form))
   }
 
   return (
@@ -29,11 +42,13 @@ const Contact = () => {
 
       <Container sx={{ py: 6 }}>
         <Grid container spacing={4}>
+
+          {/* Contact Info */}
           <Grid item xs={12} md={4}>
             {[
-              { icon: <LocationOnIcon />, title: 'Address',  text: 'Lalitpur, Bagmati Province, Nepal' },
-              { icon: <PhoneIcon />,      title: 'Phone',    text: '+977-61-XXXXXX' },
-              { icon: <EmailIcon />,      title: 'Email',    text: 'info@pmccollege.edu.np' },
+              { icon: <LocationOnIcon />, title: 'Address', text: 'Pokhara, Gandaki Province, Nepal' },
+              { icon: <PhoneIcon />,      title: 'Phone',   text: '+977-61-XXXXXX' },
+              { icon: <EmailIcon />,      title: 'Email',   text: 'info@pmccollege.edu.np' },
             ].map((info) => (
               <Card key={info.title} sx={{ mb: 2 }}>
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -49,32 +64,57 @@ const Contact = () => {
             ))}
           </Grid>
 
+          {/* Contact Form */}
           <Grid item xs={12} md={8}>
             <Card>
               <CardContent sx={{ p: 4 }}>
-                <Typography variant="h5" fontWeight={700} mb={3}>Send a Message</Typography>
-                {success && <Alert severity="success" sx={{ mb: 2 }}>Message sent successfully!</Alert>}
+                <Typography variant="h5" fontWeight={700} mb={3}>
+                  Send a Message
+                </Typography>
+
+                {error   && <Alert severity="error"   sx={{ mb: 2 }}>{error}</Alert>}
+                {success && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
+
                 <Box component="form" onSubmit={handleSubmit}>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <TextField label="Your Name" fullWidth required
-                        value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                      <TextField
+                        name="name" label="Your Name"
+                        fullWidth required
+                        value={form.name} onChange={handleChange}
+                      />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <TextField label="Email" type="email" fullWidth required
-                        value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                      <TextField
+                        name="email" label="Email" type="email"
+                        fullWidth required
+                        value={form.email} onChange={handleChange}
+                      />
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField label="Subject" fullWidth required
-                        value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
+                      <TextField
+                        name="subject" label="Subject"
+                        fullWidth required
+                        value={form.subject} onChange={handleChange}
+                      />
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField label="Message" fullWidth multiline rows={5} required
-                        value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} />
+                      <TextField
+                        name="message" label="Message"
+                        fullWidth multiline rows={5} required
+                        value={form.message} onChange={handleChange}
+                      />
                     </Grid>
                     <Grid item xs={12}>
-                      <Button type="submit" variant="contained" size="large" fullWidth>
-                        Send Message
+                      <Button
+                        type="submit" variant="contained"
+                        size="large" fullWidth
+                        disabled={loading}
+                      >
+                        {loading
+                          ? <CircularProgress size={24} color="inherit" />
+                          : 'Send Message'
+                        }
                       </Button>
                     </Grid>
                   </Grid>
@@ -82,6 +122,7 @@ const Contact = () => {
               </CardContent>
             </Card>
           </Grid>
+
         </Grid>
       </Container>
       <Footer />
