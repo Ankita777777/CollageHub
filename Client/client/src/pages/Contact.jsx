@@ -46,7 +46,7 @@ const Contact = () => {
           {/* Contact Info */}
           <Grid item xs={12} md={4}>
             {[
-              { icon: <LocationOnIcon />, title: 'Address', text: 'Pokhara, Gandaki Province, Nepal' },
+              { icon: <LocationOnIcon />, title: 'Address', text: 'Patandhoka,Lalitpur, Bagmati Province, Nepal' },
               { icon: <PhoneIcon />,      title: 'Phone',   text: '+977-61-XXXXXX' },
               { icon: <EmailIcon />,      title: 'Email',   text: 'info@pmccollege.edu.np' },
             ].map((info) => (

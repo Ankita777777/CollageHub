@@ -10,7 +10,7 @@ import Navbar  from '../components/Navbar'
 import Footer  from '../components/Footer'
 
 const steps    = ['Personal Info', 'Academic Info', 'Review & Submit']
-const programs = ['BBA', 'BCA', 'BBS', 'BCIS', 'MBA', 'MBS']
+const programs = ['BBA', 'BCA', 'BBS', 'BSC.CSIT','BIT','POLITICAL SCIENCE','MIT', 'MBA', 'MBS']
 
 const Admissions = () => {
   const dispatch = useDispatch()

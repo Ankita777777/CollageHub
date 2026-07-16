@@ -7,9 +7,12 @@ const courses = [
   { name: 'BBA',  full: 'Bachelor of Business Administration', duration: '4 Years', seats: 60, semester: 8 },
   { name: 'BCA',  full: 'Bachelor of Computer Applications',    duration: '4 Years', seats: 60, semester: 8 },
   { name: 'BBS',  full: 'Bachelor of Business Studies',         duration: '4 Years', seats: 80, semester: 8 },
-  { name: 'BCIS', full: 'Bachelor of Computer Info. Systems',   duration: '4 Years', seats: 40, semester: 8 },
+    { name: 'Political Science',  full: 'Bachelor of Business Studies',         duration: '4 Years', seats: 80, semester: 8 },
+  { name: 'BSC.Enviroment',  full: 'Bachelor of Business Studies',         duration: '4 Years', seats: 80, semester:8  },
+  { name: 'BSC.CSIT', full: 'Bachelor of Computer Science in Information and Technology',   duration: '4 Years', seats: 141, semester: 8 },
   { name: 'MBA',  full: 'Master of Business Administration',    duration: '2 Years', seats: 40, semester: 4 },
   { name: 'MBS',  full: 'Master of Business Studies',           duration: '2 Years', seats: 40, semester: 4 },
+
 ]
 
 const Courses = () => {

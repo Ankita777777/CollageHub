@@ -61,7 +61,7 @@ const Login = () => {
               <SchoolIcon sx={{ color: 'white', fontSize: 36 }} />
             </Box>
             <Typography variant="h5" color="primary" fontWeight={700}>
-              PMC Portal
+              PMC Website
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Patan Multiple Campus
