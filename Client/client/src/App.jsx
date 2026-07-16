@@ -29,12 +29,23 @@ import AdminDashboard from './pages/dashboard/AdminDashboard'
 
 // Guard
 import ProtectedRoute from './components/ProtectedRoute'
+import ManageAdmissions from './pages/dashboard/admin/ManageAdmissions'
+import IDCard           from './pages/dashboard/student/IDCard'
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
+        <Route element={<ProtectedRoute role="student" />}>
+  {/* existing routes */}
+  <Route path="/student/idcard" element={<IDCard />} />
+</Route>
+<Route element={<ProtectedRoute role="admin" />}>
+  {/* existing routes */}
+  <Route path="/admin/admissions" element={<ManageAdmissions />} />
+</Route>
         <Route path="/"                       element={<Home />} />
         <Route path="/about"                  element={<About />} />
         <Route path="/courses"                element={<Courses />} />

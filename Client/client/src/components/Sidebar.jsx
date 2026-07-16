@@ -3,6 +3,7 @@ import {
   Box, List, ListItemButton, ListItemIcon, ListItemText,
   Typography, Divider, IconButton, Tooltip, Avatar
 } from '@mui/material'
+import BadgeIcon from '@mui/icons-material/Badge'
 import DashboardIcon      from '@mui/icons-material/Dashboard'
 import EventNoteIcon      from '@mui/icons-material/EventNote'
 import AssignmentIcon     from '@mui/icons-material/Assignment'
@@ -22,27 +23,29 @@ import { logout } from '../features/auth/authSlice'
 
 const menuItems = {
   student: [
-    { label: 'Dashboard',  icon: <DashboardIcon />,     path: '/student/dashboard' },
-    { label: 'Attendance', icon: <EventNoteIcon />,      path: '/student/attendance' },
-    { label: 'Results',    icon: <AssignmentIcon />,     path: '/student/results' },
-    { label: 'Fee',        icon: <PaymentIcon />,        path: '/student/fee' },
-    { label: 'Leave',      icon: <BeachAccessIcon />,    path: '/student/leave' },
-    { label: 'Notices',    icon: <NotificationsIcon />,  path: '/notices' },
+    { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/student/dashboard' },
+    { label: 'Attendance',  icon: <EventNoteIcon />,      path: '/student/attendance' },
+    { label: 'Results',     icon: <AssignmentIcon />,     path: '/student/results' },
+    { label: 'Fee',         icon: <PaymentIcon />,        path: '/student/fee' },
+    { label: 'Leave',       icon: <BeachAccessIcon />,    path: '/student/leave' },
+    { label: 'ID Card',     icon: <BadgeIcon />,          path: '/student/idcard' },  // NEW
+    { label: 'Notices',     icon: <NotificationsIcon />,  path: '/notices' },
   ],
   teacher: [
-    { label: 'Dashboard',  icon: <DashboardIcon />,     path: '/teacher/dashboard' },
-    { label: 'Attendance', icon: <EventNoteIcon />,      path: '/teacher/dashboard' },
-    { label: 'Enter Marks',icon: <GradingIcon />,        path: '/teacher/results' },
-    { label: 'Leaves',     icon: <BeachAccessIcon />,    path: '/teacher/leaves' },
-    { label: 'Notices',    icon: <NotificationsIcon />,  path: '/notices' },
+    { label: 'Dashboard',    icon: <DashboardIcon />,    path: '/teacher/dashboard' },
+    { label: 'Attendance',   icon: <EventNoteIcon />,     path: '/teacher/dashboard' },
+    { label: 'Enter Marks',  icon: <GradingIcon />,       path: '/teacher/results' },
+    { label: 'Leave Requests',icon: <BeachAccessIcon />,  path: '/teacher/leaves' },
+    { label: 'Notices',      icon: <NotificationsIcon />, path: '/notices' },
   ],
   admin: [
-    { label: 'Dashboard',  icon: <DashboardIcon />,     path: '/admin/dashboard' },
-    { label: 'Students',   icon: <PeopleIcon />,         path: '/admin/dashboard' },
-    { label: 'Teachers',   icon: <SchoolIcon />,         path: '/admin/dashboard' },
-    { label: 'Courses',    icon: <MenuBookIcon />,       path: '/admin/dashboard' },
-    { label: 'Payments',   icon: <PaymentIcon />,        path: '/admin/dashboard' },
-    { label: 'Notices',    icon: <NotificationsIcon />,  path: '/notices' },
+    { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/admin/dashboard' },
+    { label: 'Admissions',  icon: <AssignmentIcon />,     path: '/admin/admissions' },  // NEW
+    { label: 'Students',    icon: <PeopleIcon />,         path: '/admin/dashboard' },
+    { label: 'Teachers',    icon: <SchoolIcon />,         path: '/admin/dashboard' },
+    { label: 'Courses',     icon: <MenuBookIcon />,       path: '/admin/dashboard' },
+    { label: 'Payments',    icon: <PaymentIcon />,        path: '/admin/dashboard' },
+    { label: 'Notices',     icon: <NotificationsIcon />,  path: '/notices' },
   ],
 }
 
