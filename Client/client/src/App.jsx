@@ -37,6 +37,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        <Route element={<ProtectedRoute role="admin" />}>
+  <Route path="/admin/dashboard"   element={<AdminDashboard />} />
+  <Route path="/admin/admissions"  element={<ManageAdmissions />} />
+</Route>
         {/* Public */}
         <Route element={<ProtectedRoute role="student" />}>
   {/* existing routes */}

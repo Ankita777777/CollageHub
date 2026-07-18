@@ -1,55 +1,99 @@
-import { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { submitAdmission, resetAdmission } from '../features/admission/admissionSlice'
+import { useState } from 'react'
+import API from '../api/axios'
 import {
-  Container, Typography, Box, Grid, Card, CardContent,
-  TextField, MenuItem, Button, Alert, Stepper, Step, StepLabel,
-  CircularProgress
+  Box, Container, Typography, Card, CardContent,
+  Grid, TextField, MenuItem, Button, Alert,
+  CircularProgress, Stepper, Step, StepLabel
 } from '@mui/material'
-import Navbar  from '../components/Navbar'
-import Footer  from '../components/Footer'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
+const programs = ['BBA', 'BCA', 'BBS', 'BCIS', 'MBA', 'MBS']
 const steps    = ['Personal Info', 'Academic Info', 'Review & Submit']
-const programs = ['BBA', 'BCA', 'BBS', 'BSC.CSIT','BIT','POLITICAL SCIENCE','MIT', 'MBA', 'MBS']
 
 const Admissions = () => {
-  const dispatch = useDispatch()
-  const { loading, error, success } = useSelector((state) => state.admission)
-
   const [activeStep, setActiveStep] = useState(0)
+  const [loading,    setLoading]    = useState(false)
+  const [success,    setSuccess]    = useState(false)
+  const [error,      setError]      = useState('')
   const [form, setForm] = useState({
     name: '', email: '', phone: '', address: '',
     program: '', lastSchool: '', percentage: '', message: ''
   })
 
-  useEffect(() => {
-    return () => dispatch(resetAdmission())
-  }, [dispatch])
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+    setError('')
   }
 
-  const handleNext = () => setActiveStep((s) => s + 1)
-  const handleBack = () => setActiveStep((s) => s - 1)
+  const handleNext = () => {
+    // Validate step 1
+    if (activeStep === 0) {
+      if (!form.name || !form.email || !form.phone || !form.address) {
+        setError('Please fill all fields')
+        return
+      }
+    }
+    // Validate step 2
+    if (activeStep === 1) {
+      if (!form.program || !form.lastSchool || !form.percentage) {
+        setError('Please fill all fields')
+        return
+      }
+    }
+    setError('')
+    setActiveStep((s) => s + 1)
+  }
+
+  const handleBack = () => {
+    setError('')
+    setActiveStep((s) => s - 1)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    dispatch(submitAdmission(form))
+    setLoading(true)
+    setError('')
+    try {
+      await API.post('/admissions', form)
+      setSuccess(true)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Submission failed. Try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
+  // Success screen
   if (success) {
     return (
       <>
         <Navbar />
-        <Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
-          <Alert severity="success" sx={{ fontSize: 16, mb: 3 }}>
-            ✅ Application submitted successfully!
-            We will contact you within 3-5 working days.
-          </Alert>
-          <Button variant="contained" href="/">
-            Back to Home
-          </Button>
+        <Container maxWidth="sm" sx={{ py: 10 }}>
+          <Card>
+            <CardContent sx={{ textAlign: 'center', py: 6 }}>
+              <CheckCircleIcon sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
+              <Typography variant="h4" fontWeight={700} mb={2}>
+                Application Submitted!
+              </Typography>
+              <Typography variant="body1" color="text.secondary" mb={1}>
+                Thank you <strong>{form.name}</strong>!
+              </Typography>
+              <Typography variant="body1" color="text.secondary" mb={3}>
+                We received your application for <strong>{form.program}</strong>.
+                Our team will review and contact you at{' '}
+                <strong>{form.email}</strong> within 3-5 working days.
+              </Typography>
+              <Alert severity="info" sx={{ textAlign: 'left', mb: 3 }}>
+                Once your admission is accepted, you will receive your
+                login credentials to access the student portal.
+              </Alert>
+              <Button variant="contained" href="/" size="large">
+                Back to Home
+              </Button>
+            </CardContent>
+          </Card>
         </Container>
         <Footer />
       </>
@@ -59,12 +103,15 @@ const Admissions = () => {
   return (
     <>
       <Navbar />
+
+      {/* Hero */}
       <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8, textAlign: 'center' }}>
         <Typography variant="h3" fontWeight={700}>Apply for Admission</Typography>
         <Typography sx={{ opacity: 0.8, mt: 1 }}>Academic Year 2081/82</Typography>
       </Box>
 
       <Container maxWidth="md" sx={{ py: 6 }}>
+        {/* Steps */}
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((label) => (
             <Step key={label}><StepLabel>{label}</StepLabel></Step>
@@ -73,39 +120,50 @@ const Admissions = () => {
 
         <Card>
           <CardContent sx={{ p: 4 }}>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>
+            )}
 
             <Box component="form" onSubmit={handleSubmit}>
 
               {/* Step 1 — Personal Info */}
               {activeStep === 0 && (
                 <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" fontWeight={600} mb={1}>
+                      Personal Information
+                    </Typography>
+                  </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       name="name" label="Full Name"
                       fullWidth required
-                      value={form.name} onChange={handleChange}
+                      value={form.name}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      name="email" label="Email" type="email"
-                      fullWidth required
-                      value={form.email} onChange={handleChange}
+                      name="email" label="Email Address"
+                      type="email" fullWidth required
+                      value={form.email}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       name="phone" label="Phone Number"
                       fullWidth required
-                      value={form.phone} onChange={handleChange}
+                      value={form.phone}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       name="address" label="Address"
                       fullWidth required
-                      value={form.address} onChange={handleChange}
+                      value={form.address}
+                      onChange={handleChange}
                     />
                   </Grid>
                 </Grid>
@@ -114,11 +172,17 @@ const Admissions = () => {
               {/* Step 2 — Academic Info */}
               {activeStep === 1 && (
                 <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="h6" fontWeight={600} mb={1}>
+                      Academic Information
+                    </Typography>
+                  </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      name="program" label="Program" select
-                      fullWidth required
-                      value={form.program} onChange={handleChange}
+                      name="program" label="Select Program"
+                      select fullWidth required
+                      value={form.program}
+                      onChange={handleChange}
                     >
                       {programs.map((p) => (
                         <MenuItem key={p} value={p}>{p}</MenuItem>
@@ -127,23 +191,27 @@ const Admissions = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
-                      name="lastSchool" label="Last School/College"
+                      name="lastSchool" label="Last School / College"
                       fullWidth required
-                      value={form.lastSchool} onChange={handleChange}
+                      value={form.lastSchool}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
                       name="percentage" label="Percentage / GPA"
                       fullWidth required
-                      value={form.percentage} onChange={handleChange}
+                      value={form.percentage}
+                      onChange={handleChange}
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      name="message" label="Why do you want to join PMC?"
+                      name="message"
+                      label="Why do you want to join PMC? (Optional)"
                       fullWidth multiline rows={3}
-                      value={form.message} onChange={handleChange}
+                      value={form.message}
+                      onChange={handleChange}
                     />
                   </Grid>
                 </Grid>
@@ -155,40 +223,52 @@ const Admissions = () => {
                   <Typography variant="h6" fontWeight={600} mb={2}>
                     Review Your Application
                   </Typography>
-                  <Grid container spacing={1}>
-                    {Object.entries(form).map(([key, val]) => val && (
-                      <Grid item xs={12} sm={6} key={key}>
-                        <Typography variant="body2">
-                          <strong style={{ textTransform: 'capitalize' }}>
-                            {key}:
-                          </strong>{' '}
-                          {val}
-                        </Typography>
+                  <Grid container spacing={2}>
+                    {[
+                      { label: 'Full Name',    value: form.name },
+                      { label: 'Email',        value: form.email },
+                      { label: 'Phone',        value: form.phone },
+                      { label: 'Address',      value: form.address },
+                      { label: 'Program',      value: form.program },
+                      { label: 'Last School',  value: form.lastSchool },
+                      { label: 'Percentage',   value: form.percentage },
+                      { label: 'Message',      value: form.message || 'N/A' },
+                    ].map((item) => (
+                      <Grid item xs={12} sm={6} key={item.label}>
+                        <Box sx={{ p: 1.5, bgcolor: '#f5f7fa', borderRadius: 2 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {item.label}
+                          </Typography>
+                          <Typography variant="body2" fontWeight={600}>
+                            {item.value}
+                          </Typography>
+                        </Box>
                       </Grid>
                     ))}
                   </Grid>
+                  <Alert severity="info" sx={{ mt: 3 }}>
+                    Please review your details before submitting.
+                    After submission, wait for admin approval.
+                  </Alert>
                 </Box>
               )}
 
-              {/* Navigation Buttons */}
+              {/* Buttons */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
                 <Button
-                  disabled={activeStep === 0}
                   onClick={handleBack}
+                  disabled={activeStep === 0}
                   variant="outlined"
+                  size="large"
                 >
                   Back
                 </Button>
 
                 {activeStep < steps.length - 1 ? (
                   <Button
-                    variant="contained"
                     onClick={handleNext}
-                    disabled={
-                      activeStep === 0
-                        ? !form.name || !form.email || !form.phone || !form.address
-                        : !form.program || !form.lastSchool || !form.percentage
-                    }
+                    variant="contained"
+                    size="large"
                   >
                     Next
                   </Button>
@@ -197,10 +277,11 @@ const Admissions = () => {
                     type="submit"
                     variant="contained"
                     color="success"
+                    size="large"
                     disabled={loading}
                   >
                     {loading
-                      ? <CircularProgress size={22} color="inherit" />
+                      ? <CircularProgress size={24} color="inherit" />
                       : 'Submit Application'
                     }
                   </Button>

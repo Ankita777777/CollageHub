@@ -14,6 +14,8 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+
+app.use('/api/admissions', require('./routes/admissionRoutes'))
 // Connect DB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected'))

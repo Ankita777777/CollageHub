@@ -8,24 +8,18 @@ const userSchema = new mongoose.Schema({
   role:     { type: String, enum: ['student', 'teacher', 'admin'], default: 'student' },
   photo:    { type: String, default: '' },
   isActive: { type: Boolean, default: true },
-
-  // Password reset fields
   resetPasswordToken:  { type: String },
   resetPasswordExpire: { type: Date },
 }, { timestamps: true })
 
-userSchema.pre('save', async function () {
-  if (!this.isModified('password')) 
-  {
-return;  
-  }
-
-  this.password = await bcrypt.hash(this.password, 10);
-
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next()
+  this.password = await bcrypt.hash(this.password, 10)
+  next()
 })
 
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password)
+userSchema.methods.matchPassword = async function (entered) {
+  return await bcrypt.compare(entered, this.password)
 }
 
 module.exports = mongoose.model('User', userSchema)
