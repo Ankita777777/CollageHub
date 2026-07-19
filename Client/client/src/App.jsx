@@ -11,6 +11,11 @@ import Login          from './pages/Login'
 import Register       from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword  from './pages/ResetPassword'
+import ManageCourses    from './pages/dashboard/admin/ManageCourses'
+import ManageStudents   from './pages/dashboard/admin/ManageStudents'
+import ManageNotices    from './pages/dashboard/admin/ManageNotices'
+import ManageResults    from './pages/dashboard/admin/ManageResults'
+import ManageAttendance from './pages/dashboard/admin/ManageAttendance'
 
 // Student Pages
 import StudentDashboard from './pages/dashboard/StudentDashboard'
@@ -47,8 +52,17 @@ function App() {
   {/* existing routes */}
   <Route path="/student/idcard" element={<IDCard />} />
 </Route>
+
 <Route element={<ProtectedRoute role="admin" />}>
   {/* existing routes */}
+  <Route path="/admin/dashboard"   element={<AdminDashboard />} />
+  <Route path="/admin/admissions"  element={<ManageAdmissions />} />
+  <Route path="/admin/students"    element={<ManageStudents />} />
+  <Route path="/admin/courses"     element={<ManageCourses />} />
+  <Route path="/admin/attendance"  element={<ManageAttendance />} />
+  <Route path="/admin/results"     element={<ManageResults />} />
+  <Route path="/admin/notices"     element={<ManageNotices />} />
+
   <Route path="/admin/admissions" element={<ManageAdmissions />} />
 </Route>
         <Route path="/"                       element={<Home />} />

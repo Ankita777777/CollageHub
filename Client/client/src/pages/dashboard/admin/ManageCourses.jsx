@@ -8,7 +8,7 @@ import {
 import API    from '../../../api/axios'
 import Layout from '../../../components/Layout'
 
-const programs  = ['BBA', 'BCA', 'BBS', 'BCIS', 'MBA', 'MBS']
+const programs  = ['BBA', 'BCA', 'BBS', 'BSC.CIST','BIT', 'MBA', 'MBS']
 const semesters = [1, 2, 3, 4, 5, 6, 7, 8]
 
 const ManageCourses = () => {
@@ -20,8 +20,13 @@ const ManageCourses = () => {
   const [success,  setSuccess]  = useState('')
   const [error,    setError]    = useState('')
   const [form, setForm] = useState({
-    name: '', code: '', program: '', semester: '',
-    creditHours: 3, teacher: '', description: ''
+    name:        '',
+    code:        '',
+    program:     '',
+    semester:    '',
+    creditHours: 3,
+    teacher:     '',
+    description: '',
   })
 
   const fetchData = async () => {
@@ -40,12 +45,26 @@ const ManageCourses = () => {
     }
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const resetForm = () => {
+    setForm({
+      name: '', code: '', program: '', semester: '',
+      creditHours: 3, teacher: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Teacher",
+  required: false,
+  default: null
+}, description: '',
+    })
+    setEditItem(null)
+    setError('')
+  }
 
   const openAdd = () => {
-    setEditItem(null)
-    setForm({ name: '', code: '', program: '', semester: '', creditHours: 3, teacher: '', description: '' })
-    setError('')
+    resetForm()
     setOpen(true)
   }
 
@@ -66,19 +85,23 @@ const ManageCourses = () => {
 
   const handleSave = async () => {
     setError('')
+    if (!form.name || !form.code || !form.program || !form.semester) {
+      return setError('Please fill all required fields')
+    }
     try {
       if (editItem) {
         await API.put(`/admin/courses/${editItem._id}`, form)
-        setSuccess('Course updated!')
+        setSuccess('Course updated successfully!')
       } else {
         await API.post('/admin/courses', form)
-        setSuccess('Course created!')
+        setSuccess('Course created successfully!')
       }
       setOpen(false)
+      resetForm()
       fetchData()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed')
+      setError(err.response?.data?.message || 'Failed to save course')
     }
   }
 
@@ -90,7 +113,7 @@ const ManageCourses = () => {
       setSuccess('Course deleted!')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
-      setError('Failed to delete')
+      setError('Failed to delete course')
     }
   }
 
@@ -125,7 +148,16 @@ const ManageCourses = () => {
                 <TableBody>
                   {courses.map((c) => (
                     <TableRow key={c._id} hover>
-                      <TableCell>{c.name}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>
+                          {c.name}
+                        </Typography>
+                        {c.description && (
+                          <Typography variant="caption" color="text.secondary">
+                            {c.description}
+                          </Typography>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Chip label={c.code} size="small" variant="outlined" />
                       </TableCell>
@@ -135,12 +167,27 @@ const ManageCourses = () => {
                       <TableCell>Sem {c.semester}</TableCell>
                       <TableCell>{c.creditHours}</TableCell>
                       <TableCell>
-                        {c.teacher?.user?.name || 'Not assigned'}
+                        {c.teacher?.user?.name || (
+                          <Typography variant="caption" color="text.secondary">
+                            Not assigned
+                          </Typography>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button size="small" onClick={() => openEdit(c)}>Edit</Button>
-                          <Button size="small" color="error" onClick={() => handleDelete(c._id)}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => openEdit(c)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => handleDelete(c._id)}
+                          >
                             Delete
                           </Button>
                         </Box>
@@ -149,8 +196,12 @@ const ManageCourses = () => {
                   ))}
                   {!courses.length && (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                        No courses yet. Click Add Course.
+                      <TableCell
+                        colSpan={7}
+                        align="center"
+                        sx={{ py: 6, color: 'text.secondary' }}
+                      >
+                        No courses yet. Click Add Course to create one.
                       </TableCell>
                     </TableRow>
                   )}
@@ -161,8 +212,13 @@ const ManageCourses = () => {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      {/* Add / Edit Dialog */}
+      <Dialog
+        open={open}
+        onClose={() => { setOpen(false); resetForm() }}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle fontWeight={700}>
           {editItem ? 'Edit Course' : 'Add New Course'}
         </DialogTitle>
@@ -171,14 +227,17 @@ const ManageCourses = () => {
           <Grid container spacing={2} sx={{ mt: 0.5 }}>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Course Name" fullWidth required
+                label="Course Name *"
+                fullWidth
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Mathematics"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Course Code" fullWidth required
+                label="Course Code *"
+                fullWidth
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value })}
                 placeholder="e.g. BCA101"
@@ -186,7 +245,9 @@ const ManageCourses = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Program" select fullWidth required
+                label="Program *"
+                select
+                fullWidth
                 value={form.program}
                 onChange={(e) => setForm({ ...form, program: e.target.value })}
               >
@@ -197,7 +258,9 @@ const ManageCourses = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Semester" select fullWidth required
+                label="Semester *"
+                select
+                fullWidth
                 value={form.semester}
                 onChange={(e) => setForm({ ...form, semester: e.target.value })}
               >
@@ -208,7 +271,9 @@ const ManageCourses = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Credit Hours" type="number" fullWidth
+                label="Credit Hours"
+                type="number"
+                fullWidth
                 value={form.creditHours}
                 onChange={(e) => setForm({ ...form, creditHours: e.target.value })}
                 inputProps={{ min: 1, max: 6 }}
@@ -216,7 +281,9 @@ const ManageCourses = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Assign Teacher" select fullWidth
+                label="Assign Teacher"
+                select
+                fullWidth
                 value={form.teacher}
                 onChange={(e) => setForm({ ...form, teacher: e.target.value })}
               >
@@ -230,7 +297,10 @@ const ManageCourses = () => {
             </Grid>
             <Grid item xs={12}>
               <TextField
-                label="Description (optional)" fullWidth multiline rows={2}
+                label="Description (optional)"
+                fullWidth
+                multiline
+                rows={2}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
@@ -238,9 +308,9 @@ const ManageCourses = () => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={() => { setOpen(false); resetForm() }}>Cancel</Button>
           <Button variant="contained" onClick={handleSave}>
-            {editItem ? 'Update' : 'Create'}
+            {editItem ? 'Update Course' : 'Create Course'}
           </Button>
         </DialogActions>
       </Dialog>
