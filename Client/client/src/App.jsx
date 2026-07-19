@@ -16,6 +16,7 @@ import ManageStudents   from './pages/dashboard/admin/ManageStudents'
 import ManageNotices    from './pages/dashboard/admin/ManageNotices'
 import ManageResults    from './pages/dashboard/admin/ManageResults'
 import ManageAttendance from './pages/dashboard/admin/ManageAttendance'
+import ManageMessages from './pages/dashboard/admin/ManageMessages'
 
 // Student Pages
 import StudentDashboard from './pages/dashboard/StudentDashboard'
@@ -62,6 +63,7 @@ function App() {
   <Route path="/admin/attendance"  element={<ManageAttendance />} />
   <Route path="/admin/results"     element={<ManageResults />} />
   <Route path="/admin/notices"     element={<ManageNotices />} />
+<Route path="/admin/messages" element={<ManageMessages />} />
 
   <Route path="/admin/admissions" element={<ManageAdmissions />} />
 </Route>
