@@ -1,9 +1,8 @@
 const Admission = require('../models/Admission')
 const User      = require('../models/User')
 const Student   = require('../models/Student')
+const Teacher   = require('../models/Teacher')
 
-// @POST /api/admissions
-// Public — student fills form
 const submitAdmission = async (req, res) => {
   try {
     const {
@@ -15,40 +14,36 @@ const submitAdmission = async (req, res) => {
       return res.status(400).json({ message: 'Please fill all required fields' })
     }
 
-    // Check duplicate
     const existing = await Admission.findOne({ email, program })
     if (existing) {
       return res.status(400).json({
-        message: 'You already applied for this program. We will contact you soon.'
+        message: 'You already applied for this program'
       })
     }
 
     const admission = await Admission.create({
       name, email, phone, address,
       program, lastSchool, percentage,
-      message: message || ''
+      message: message || '',
     })
 
     return res.status(201).json({
       success: true,
-      message: 'Application submitted successfully! We will contact you soon.',
+      message: 'Application submitted! We will contact you soon.',
       admission,
     })
   } catch (error) {
-    console.error('Submit admission error:', error.message)
+    console.error('Submit error:', error.message)
     return res.status(500).json({ message: error.message })
   }
 }
 
-// @GET /api/admissions
-// Admin only — see all applications
 const getAllAdmissions = async (req, res) => {
   try {
     const { status, program } = req.query
     const filter = {}
     if (status)  filter.status  = status
     if (program) filter.program = program
-
     const admissions = await Admission.find(filter)
       .populate('reviewedBy', 'name')
       .sort({ createdAt: -1 })
@@ -58,13 +53,11 @@ const getAllAdmissions = async (req, res) => {
   }
 }
 
-// @GET /api/admissions/:id
-// Admin only — single application
 const getAdmission = async (req, res) => {
   try {
     const admission = await Admission.findById(req.params.id)
     if (!admission) {
-      return res.status(404).json({ message: 'Application not found' })
+      return res.status(404).json({ message: 'Not found' })
     }
     return res.json(admission)
   } catch (error) {
@@ -72,20 +65,17 @@ const getAdmission = async (req, res) => {
   }
 }
 
-// @PUT /api/admissions/:id
-// Admin only — accept or reject
 const updateAdmission = async (req, res) => {
   try {
-    const { status, reviewNote, semester, batch } = req.body
+    const { status, reviewNote, semester, batch, role } = req.body
 
     const admission = await Admission.findById(req.params.id)
     if (!admission) {
       return res.status(404).json({ message: 'Application not found' })
     }
 
-    // If already accepted dont accept again
     if (admission.status === 'accepted') {
-      return res.status(400).json({ message: 'Application already accepted' })
+      return res.status(400).json({ message: 'Already accepted' })
     }
 
     admission.status     = status
@@ -93,30 +83,33 @@ const updateAdmission = async (req, res) => {
     admission.reviewedBy = req.user._id
     await admission.save()
 
-    // ✅ If accepted — auto create student account
-    if (status === 'accepted') {
-      // Check if user already exists with this email
+    // ─── ACCEPT AS STUDENT ───────────────────────────
+    if (status === 'accepted' && (!role || role === 'student')) {
+      const defaultPassword = `PMC@${admission.phone.slice(-4)}`
       let user = await User.findOne({ email: admission.email })
 
       if (!user) {
-        // Generate default password from phone number
-        const defaultPassword = `PMC@${admission.phone.slice(-4)}`
-
-        // Create user account with student role
+        // Create new user
         user = await User.create({
           name:     admission.name,
           email:    admission.email,
           password: defaultPassword,
           role:     'student',
         })
+      } else {
+        // Update existing user role
+        user.role = 'student'
+        await user.save()
+      }
 
-        // Generate roll number
-        const count  = await Student.countDocuments({ program: admission.program })
+      // Create student profile if not exists
+      let student = await Student.findOne({ user: user._id })
+      if (!student) {
+        const count  = await Student.countDocuments()
         const year   = new Date().getFullYear()
         const rollNo = `${admission.program}${year}${String(count + 1).padStart(3, '0')}`
 
-        // Create student profile
-        await Student.create({
+        student = await Student.create({
           user:     user._id,
           rollNo,
           semester: Number(semester) || 1,
@@ -124,43 +117,78 @@ const updateAdmission = async (req, res) => {
           batch:    batch || `${year}-${year + 4}`,
           phone:    admission.phone,
           address:  admission.address,
+          feeStatus: 'due',
+          isActive:  true,
         })
 
-        // Save reference to student user in admission
-        admission.studentUser = user._id
-        await admission.save()
-
-        console.log('✅ Student account created!')
-        console.log('   Email:', admission.email)
+        console.log('✅ Student created:', admission.email)
         console.log('   Password:', defaultPassword)
         console.log('   Roll No:', rollNo)
-
-        return res.json({
-          success:       true,
-          message:       'Admission accepted! Student account created successfully.',
-          admission,
-          credentials: {
-            email:       admission.email,
-            password:    defaultPassword,
-            rollNo,
-          },
-        })
-      } else {
-        // User already exists — just update role
-        user.role = 'student'
-        await user.save()
-
-        return res.json({
-          success: true,
-          message: 'Admission accepted! Existing account updated to student.',
-          admission,
-        })
       }
+
+      admission.studentUser = user._id
+      await admission.save()
+
+      return res.json({
+        success: true,
+        message: 'Admission accepted! Student account created.',
+        admission,
+        credentials: {
+          email:    admission.email,
+          password: defaultPassword,
+          rollNo:   student.rollNo,
+          role:     'student',
+        },
+      })
     }
 
+    // ─── ACCEPT AS TEACHER ───────────────────────────
+    if (status === 'accepted' && role === 'teacher') {
+      const defaultPassword = `PMC@${admission.phone.slice(-4)}`
+      let user = await User.findOne({ email: admission.email })
+
+      if (!user) {
+        user = await User.create({
+          name:     admission.name,
+          email:    admission.email,
+          password: defaultPassword,
+          role:     'teacher',
+        })
+      } else {
+        user.role = 'teacher'
+        await user.save()
+      }
+
+      // Create teacher profile if not exists
+      let teacher = await Teacher.findOne({ user: user._id })
+      if (!teacher) {
+        teacher = await Teacher.create({
+          user:        user._id,
+          employeeId:  `EMP${Date.now()}`,
+          department:  req.body.department  || 'General',
+          designation: req.body.designation || 'Lecturer',
+          phone:       admission.phone,
+          isActive:    true,
+        })
+        console.log('✅ Teacher created:', admission.email)
+      }
+
+      return res.json({
+        success: true,
+        message: 'Accepted as Teacher! Account created.',
+        admission,
+        credentials: {
+          email:    admission.email,
+          password: defaultPassword,
+          role:     'teacher',
+        },
+      })
+    }
+
+    // ─── REJECTED ────────────────────────────────────
     return res.json({
       success: true,
-      message: `Application ${status}`,
+      message: 'Application rejected',
       admission,
     })
   } catch (error) {
@@ -169,12 +197,10 @@ const updateAdmission = async (req, res) => {
   }
 }
 
-// @DELETE /api/admissions/:id
-// Admin only
 const deleteAdmission = async (req, res) => {
   try {
     await Admission.findByIdAndDelete(req.params.id)
-    return res.json({ message: 'Application deleted' })
+    return res.json({ message: 'Deleted' })
   } catch (error) {
     return res.status(500).json({ message: error.message })
   }
