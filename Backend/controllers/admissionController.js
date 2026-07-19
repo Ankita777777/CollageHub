@@ -3,6 +3,7 @@ const User      = require('../models/User')
 const Student   = require('../models/Student')
 const Teacher   = require('../models/Teacher')
 
+// In submitAdmission function add marksheet handling:
 const submitAdmission = async (req, res) => {
   try {
     const {
@@ -16,20 +17,24 @@ const submitAdmission = async (req, res) => {
 
     const existing = await Admission.findOne({ email, program })
     if (existing) {
-      return res.status(400).json({
-        message: 'You already applied for this program'
-      })
+      return res.status(400).json({ message: 'You already applied for this program' })
     }
+
+    // Get uploaded file path
+    const marksheet = req.file
+      ? `http://localhost:5000/uploads/${req.file.filename}`
+      : ''
 
     const admission = await Admission.create({
       name, email, phone, address,
       program, lastSchool, percentage,
       message: message || '',
+      marksheet,
     })
 
     return res.status(201).json({
       success: true,
-      message: 'Application submitted! We will contact you soon.',
+      message: 'Application submitted successfully!',
       admission,
     })
   } catch (error) {

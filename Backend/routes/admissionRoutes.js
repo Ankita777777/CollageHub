@@ -1,19 +1,17 @@
-const express = require('express')
-const router  = express.Router()
+const express  = require('express')
+const router   = express.Router()
 const {
-  submitAdmission,
-  getAllAdmissions,
-  getAdmission,
-  updateAdmission,
-  deleteAdmission,
+  submitAdmission, getAllAdmissions,
+  getAdmission, updateAdmission, deleteAdmission,
 } = require('../controllers/admissionController')
 const { protect }   = require('../middleware/authMiddleware')
 const { authorize } = require('../middleware/roleMiddleware')
+const upload        = require('../middleware/uploadMiddleware')
 
-// ✅ Public — no login needed to apply
-router.post('/', submitAdmission)
+// Public — with file upload
+router.post('/', upload.single('marksheet'), submitAdmission)
 
-// ✅ Admin only
+// Admin only
 router.get('/',       protect, authorize('admin'), getAllAdmissions)
 router.get('/:id',    protect, authorize('admin'), getAdmission)
 router.put('/:id',    protect, authorize('admin'), updateAdmission)

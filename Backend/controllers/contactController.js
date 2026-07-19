@@ -1,6 +1,6 @@
-const sendEmail = require('../utils/sendEmail')
+// backend/controllers/contactController.js
+const Contact = require('../models/Contact')
 
-// @POST /api/contact
 const sendContactMessage = async (req, res) => {
   try {
     const { name, email, subject, message } = req.body
@@ -9,37 +9,39 @@ const sendContactMessage = async (req, res) => {
       return res.status(400).json({ message: 'Please fill all fields' })
     }
 
-    // Email to admin
-    await sendEmail({
-      to:      process.env.SMTP_USER,
-      subject: `PMC Contact Form — ${subject}`,
-      html: `
-        <h2>New Contact Message</h2>
-        <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message}</p>
-      `,
-    })
+    // Save to database instead of email
+    const contact = await Contact.create({ name, email, subject, message })
 
-    // Auto reply to sender
-    await sendEmail({
-      to:      email,
-      subject: 'PMC College — Message Received',
-      html: `
-        <h2>Thank you for contacting us!</h2>
-        <p>Dear <strong>${name}</strong>,</p>
-        <p>We received your message and will get back to you within 24-48 hours.</p>
-        <p><strong>Your message:</strong> ${message}</p>
-        <p>PMC College Team</p>
-      `,
-    })
+    console.log('📧 New Contact Message:')
+    console.log('   From:', name, `(${email})`)
+    console.log('   Subject:', subject)
+    console.log('   Message:', message)
 
-    res.json({ message: 'Message sent successfully! We will reply soon.' })
+    return res.json({
+      message: 'Message sent successfully! We will reply within 24 hours.'
+    })
   } catch (error) {
-    console.error('Contact error:', error)
-    res.status(500).json({ message: 'Failed to send message. Try again.' })
+    console.error('Contact error:', error.message)
+    return res.status(500).json({ message: error.message })
   }
 }
 
-module.exports = { sendContactMessage }
+const getAllMessages = async (req, res) => {
+  try {
+    const messages = await Contact.find().sort({ createdAt: -1 })
+    return res.json(messages)
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+}
+
+const deleteMessage = async (req, res) => {
+  try {
+    await Contact.findByIdAndDelete(req.params.id)
+    return res.json({ message: 'Message deleted' })
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+}
+
+module.exports = { sendContactMessage, getAllMessages, deleteMessage }

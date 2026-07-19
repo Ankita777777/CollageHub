@@ -205,6 +205,40 @@ const Admissions = () => {
                       onChange={handleChange}
                     />
                   </Grid>
+                  // Add this to step 2 in Admissions.jsx (Academic Info section)
+// After percentage field add:
+
+<Grid item xs={12}>
+  <Typography variant="body2" color="text.secondary" mb={1}>
+    Upload Marksheet (JPG, PNG or PDF, max 5MB)
+  </Typography>
+  <Box sx={{
+    border: '2px dashed #ccc',
+    borderRadius: 2, p: 3,
+    textAlign: 'center',
+    bgcolor: marksheet ? '#f0f7f0' : '#fafafa',
+    cursor: 'pointer',
+  }}>
+    <input
+      type="file"
+      accept=".jpg,.jpeg,.png,.pdf"
+      onChange={(e) => setMarksheet(e.target.files[0])}
+      style={{ display: 'none' }}
+      id="marksheet-upload"
+    />
+    <label htmlFor="marksheet-upload" style={{ cursor: 'pointer' }}>
+      {marksheet ? (
+        <Typography variant="body2" color="success.main" fontWeight={600}>
+          ✅ {marksheet.name}
+        </Typography>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          📎 Click to upload marksheet
+        </Typography>
+      )}
+    </label>
+  </Box>
+</Grid>
                   <Grid item xs={12}>
                     <TextField
                       name="message"

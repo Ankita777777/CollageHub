@@ -9,6 +9,7 @@ const admissionSchema = new mongoose.Schema({
   lastSchool: { type: String, required: true },
   percentage: { type: String, required: true },
   message:    { type: String, default: '' },
+  marksheet:  { type: String, default: '' }, // file URL or base64
   status: {
     type:    String,
     enum:    ['pending', 'reviewing', 'accepted', 'rejected'],

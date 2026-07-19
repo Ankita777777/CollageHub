@@ -39,7 +39,10 @@ app.use('/api/notices',    require('./routes/noticeRoutes'))
 app.use('/api/payments',   require('./routes/paymentRoutes'))
 app.use('/api/admissions', require('./routes/admissionRoutes'))
 app.use('/api/contact',    require('./routes/contactRoutes'))
+const path = require('path')
 
+// Add this after app.use(express.json())
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Error handler
 app.use((err, req, res, next) => {
   console.error('ERROR:', err.message)
