@@ -7,8 +7,9 @@ const {
 } = require('../controllers/contactController')
 const { protect }   = require('../middleware/authMiddleware')
 const { authorize } = require('../middleware/roleMiddleware')
+const { validateContact } = require('../middleware/validateMiddleware')
 
-router.post('/',      sendContactMessage)
+router.post('/',  validateContact,    sendContactMessage)
 router.get('/',       protect, authorize('admin'), getAllMessages)
 router.delete('/:id', protect, authorize('admin'), deleteMessage)
 

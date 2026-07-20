@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import ManageTeachers from './pages/dashboard/admin/ManageTeachers'
+import AdminSettings  from './pages/dashboard/admin/AdminSettings'
 
 // Public Pages
 import Home           from './pages/Home'
@@ -59,11 +61,13 @@ function App() {
   <Route path="/admin/dashboard"   element={<AdminDashboard />} />
   <Route path="/admin/admissions"  element={<ManageAdmissions />} />
   <Route path="/admin/students"    element={<ManageStudents />} />
+    <Route path="/admin/teachers"    element={<ManageTeachers />} />
   <Route path="/admin/courses"     element={<ManageCourses />} />
   <Route path="/admin/attendance"  element={<ManageAttendance />} />
   <Route path="/admin/results"     element={<ManageResults />} />
   <Route path="/admin/notices"     element={<ManageNotices />} />
 <Route path="/admin/messages" element={<ManageMessages />} />
+  <Route path="/admin/settings"    element={<AdminSettings />} />
 
   <Route path="/admin/admissions" element={<ManageAdmissions />} />
 </Route>

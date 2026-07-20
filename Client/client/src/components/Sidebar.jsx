@@ -20,7 +20,8 @@ import ChevronRightIcon   from '@mui/icons-material/ChevronRight'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../features/auth/authSlice'
-
+import SettingsIcon from '@mui/icons-material/Settings'
+import EmailIcon    from '@mui/icons-material/Email'
 const menuItems = {
   student: [
     { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/student/dashboard' },
@@ -39,14 +40,17 @@ const menuItems = {
     { label: 'Notices',      icon: <NotificationsIcon />, path: '/notices' },
   ],
   admin: [
-    { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/admin/dashboard' },
-    { label: 'Admissions',  icon: <AssignmentIcon />,     path: '/admin/admissions' },  // NEW
-    { label: 'Students',    icon: <PeopleIcon />,         path: '/admin/dashboard' },
-    { label: 'Teachers',    icon: <SchoolIcon />,         path: '/admin/dashboard' },
-    { label: 'Courses',     icon: <MenuBookIcon />,       path: '/admin/dashboard' },
-    { label: 'Payments',    icon: <PaymentIcon />,        path: '/admin/dashboard' },
-    { label: 'Notices',     icon: <NotificationsIcon />,  path: '/notices' },
-  ],
+     { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/admin/dashboard' },
+  { label: 'Admissions',  icon: <AssignmentIcon />,    path: '/admin/admissions' },
+  { label: 'Students',    icon: <PeopleIcon />,         path: '/admin/students' },
+  { label: 'Teachers',    icon: <SchoolIcon />,         path: '/admin/teachers' },
+  { label: 'Courses',     icon: <MenuBookIcon />,       path: '/admin/courses' },
+  { label: 'Attendance',  icon: <EventNoteIcon />,      path: '/admin/attendance' },
+  { label: 'Results',     icon: <GradingIcon />,        path: '/admin/results' },
+  { label: 'Notices',     icon: <NotificationsIcon />,  path: '/admin/notices' },
+  { label: 'Messages',    icon: <EmailIcon />,          path: '/admin/messages' },
+  { label: 'Settings',    icon: <SettingsIcon />,       path: '/admin/settings' },
+ ],
 }
 
 const Sidebar = ({ role }) => {
