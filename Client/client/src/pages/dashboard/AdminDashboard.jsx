@@ -1,168 +1,231 @@
 import { useEffect, useState } from 'react'
 import {
   Box, Grid, Card, CardContent, Typography,
+  CircularProgress, Alert, LinearProgress,
   Table, TableHead, TableRow, TableCell, TableBody,
-  Button, TextField, Dialog, DialogTitle,
-  DialogContent, DialogActions, MenuItem, Alert
+  Chip, Button
 } from '@mui/material'
-import PeopleIcon from '@mui/icons-material/People'
-import SchoolIcon from '@mui/icons-material/School'
-import MenuBookIcon from '@mui/icons-material/MenuBook'
-import PaymentIcon from '@mui/icons-material/Payment'
-import Sidebar from '../../components/Sidebar'
-import API from '../../api/axios'
+import PeopleIcon     from '@mui/icons-material/People'
+import SchoolIcon     from '@mui/icons-material/School'
+import MenuBookIcon   from '@mui/icons-material/MenuBook'
+import PaymentIcon    from '@mui/icons-material/Payment'
+import { useSelector } from 'react-redux'
+import { useNavigate }  from 'react-router-dom'
+import Layout from '../../components/Layout'
+import API    from '../../api/axios'
 
 const AdminDashboard = () => {
-  const [stats, setStats]     = useState({})
-  const [students, setStudents] = useState([])
-  const [open, setOpen]       = useState(false)
-  const [success, setSuccess] = useState('')
-  const [form, setForm]       = useState({
-    name: '', email: '', password: '', rollNo: '',
-    semester: '', program: '', batch: '', phone: ''
-  })
+  const navigate       = useNavigate()
+  const { user }       = useSelector((state) => state.auth)
+  const [stats,   setStats]   = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error,   setError]   = useState('')
 
   useEffect(() => {
-    API.get('/admin/stats').then((res) => setStats(res.data))
-    API.get('/admin/students').then((res) => setStudents(res.data))
+    API.get('/admin/stats')
+      .then((res) => setStats(res.data))
+      .catch(() => setError('Failed to load stats'))
+      .finally(() => setLoading(false))
   }, [])
 
-  const handleCreate = async () => {
-    try {
-      await API.post('/admin/students', form)
-      setSuccess('Student created!')
-      setOpen(false)
-      const res = await API.get('/admin/students')
-      setStudents(res.data)
-    } catch (err) {
-      alert(err.response?.data?.message)
-    }
-  }
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Deactivate this student?')) return
-    await API.delete(`/admin/students/${id}`)
-    setStudents(students.filter((s) => s._id !== id))
-  }
-
-  const statCards = [
-    { label: 'Total Students', value: stats.totalStudents, icon: <PeopleIcon />,   color: '#1565C0' },
-    { label: 'Total Teachers', value: stats.totalTeachers, icon: <SchoolIcon />,   color: '#2E7D32' },
-    { label: 'Total Courses',  value: stats.totalCourses,  icon: <MenuBookIcon />, color: '#E65100' },
-    { label: 'Total Revenue',  value: `Rs. ${stats.totalRevenue || 0}`, icon: <PaymentIcon />, color: '#6A1B9A' },
-  ]
+  const statCards = stats ? [
+    { label: 'Total Students', value: stats.totalStudents, icon: <PeopleIcon />,   color: '#1565C0', path: '/admin/students' },
+    { label: 'Total Teachers', value: stats.totalTeachers, icon: <SchoolIcon />,   color: '#2E7D32', path: '/admin/teachers' },
+    { label: 'Total Courses',  value: stats.totalCourses,  icon: <MenuBookIcon />, color: '#E65100', path: '/admin/courses' },
+    { label: 'Total Revenue',  value: `Rs.${stats.totalRevenue}`, icon: <PaymentIcon />, color: '#6A1B9A', path: '/admin/payments' },
+  ] : []
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Sidebar role="admin" />
-      <Box sx={{ flexGrow: 1, p: 3, bgcolor: 'background.default', minHeight: '100vh' }}>
-        <Typography variant="h5" fontWeight={700} mb={3}>Admin Dashboard</Typography>
+    <Layout role="admin">
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" fontWeight={700}>
+          Welcome, {user?.name} 👋
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {new Date().toDateString()} — Admin Panel
+        </Typography>
+      </Box>
 
-        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        <Grid container spacing={3} mb={4}>
-          {statCards.map((s) => (
-            <Grid item xs={12} sm={6} md={3} key={s.label}>
+      {loading ? (
+        <Box textAlign="center" py={6}><CircularProgress /></Box>
+      ) : (
+        <>
+          {/* Stat Cards */}
+          <Grid container spacing={3} mb={4}>
+            {statCards.map((s) => (
+              <Grid item xs={12} sm={6} md={3} key={s.label}>
+                <Card
+                  sx={{ cursor: 'pointer', '&:hover': { boxShadow: 6 }, transition: '0.2s' }}
+                  onClick={() => navigate(s.path)}
+                >
+                  <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ bgcolor: s.color + '20', p: 1.5, borderRadius: 2, color: s.color }}>
+                      {s.icon}
+                    </Box>
+                    <Box>
+                      <Typography variant="h5" fontWeight={700}>{s.value}</Typography>
+                      <Typography variant="body2" color="text.secondary">{s.label}</Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          <Grid container spacing={3}>
+            {/* Students by Program */}
+            <Grid item xs={12} md={6}>
               <Card>
-                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ bgcolor: s.color + '20', p: 1.5, borderRadius: 2, color: s.color }}>
-                    {s.icon}
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="h6" fontWeight={600}>Students by Program</Typography>
+                    <Button size="small" onClick={() => navigate('/admin/students')}>
+                      View All
+                    </Button>
                   </Box>
-                  <Box>
-                    <Typography variant="h5" fontWeight={700}>{s.value}</Typography>
-                    <Typography variant="body2" color="text.secondary">{s.label}</Typography>
-                  </Box>
+                  {stats?.studentsByProgram?.length === 0 ? (
+                    <Typography color="text.secondary" textAlign="center" py={2}>
+                      No students enrolled yet
+                    </Typography>
+                  ) : (
+                    stats?.studentsByProgram?.map((p) => (
+                      <Box key={p._id} sx={{ mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Typography variant="body2" fontWeight={600}>
+                            {p._id || 'Unknown'}
+                          </Typography>
+                          <Chip label={p.count} size="small" color="primary" />
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={(p.count / stats.totalStudents) * 100}
+                          sx={{ borderRadius: 2, height: 8 }}
+                        />
+                      </Box>
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </Grid>
-          ))}
-        </Grid>
 
-        {/* Students Table */}
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h6" fontWeight={600}>Manage Students</Typography>
-              <Button variant="contained" onClick={() => setOpen(true)}>+ Add Student</Button>
-            </Box>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Roll No</TableCell>
-                  <TableCell>Program</TableCell>
-                  <TableCell>Semester</TableCell>
-                  <TableCell>Fee</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {students.map((s) => (
-                  <TableRow key={s._id}>
-                    <TableCell>{s.user?.name}</TableCell>
-                    <TableCell>{s.user?.email}</TableCell>
-                    <TableCell>{s.rollNo}</TableCell>
-                    <TableCell>{s.program}</TableCell>
-                    <TableCell>{s.semester}</TableCell>
-                    <TableCell>{s.feeStatus}</TableCell>
-                    <TableCell>
-                      <Button size="small" color="error" onClick={() => handleDelete(s._id)}>
-                        Remove
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        {/* Add Student Dialog */}
-        <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Add New Student</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              {[
-                { name: 'name',     label: 'Full Name' },
-                { name: 'email',    label: 'Email' },
-                { name: 'password', label: 'Password' },
-                { name: 'rollNo',   label: 'Roll No' },
-                { name: 'phone',    label: 'Phone' },
-                { name: 'batch',    label: 'Batch (e.g. 2022-2026)' },
-              ].map((f) => (
-                <Grid item xs={12} sm={6} key={f.name}>
-                  <TextField label={f.label} fullWidth
-                    type={f.name === 'password' ? 'password' : 'text'}
-                    value={form[f.name]}
-                    onChange={(e) => setForm({ ...form, [f.name]: e.target.value })} />
-                </Grid>
-              ))}
-              <Grid item xs={12} sm={6}>
-                <TextField select label="Program" fullWidth value={form.program}
-                  onChange={(e) => setForm({ ...form, program: e.target.value })}>
-                  {['BBA', 'BCA', 'BBS', 'BCIS', 'MBA', 'MBS'].map((p) => (
-                    <MenuItem key={p} value={p}>{p}</MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField select label="Semester" fullWidth value={form.semester}
-                  onChange={(e) => setForm({ ...form, semester: e.target.value })}>
-                  {[1,2,3,4,5,6,7,8].map((s) => (
-                    <MenuItem key={s} value={s}>Semester {s}</MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
+            {/* Students by Semester */}
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="h6" fontWeight={600}>Students by Semester</Typography>
+                  </Box>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell><strong>Semester</strong></TableCell>
+                        <TableCell><strong>Students</strong></TableCell>
+                        <TableCell><strong>Progress</strong></TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {stats?.studentsBySemester?.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} align="center" sx={{ color: 'text.secondary' }}>
+                            No data
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        stats?.studentsBySemester?.map((s) => (
+                          <TableRow key={s._id}>
+                            <TableCell>Semester {s._id}</TableCell>
+                            <TableCell><strong>{s.count}</strong></TableCell>
+                            <TableCell sx={{ width: 120 }}>
+                              <LinearProgress
+                                variant="determinate"
+                                value={(s.count / stats.totalStudents) * 100}
+                                sx={{ borderRadius: 2, height: 6 }}
+                                color="success"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
-            <Button variant="contained" onClick={handleCreate}>Create Student</Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Box>
+
+            {/* Teachers by Department */}
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="h6" fontWeight={600}>Teachers by Department</Typography>
+                    <Button size="small" onClick={() => navigate('/admin/teachers')}>
+                      View All
+                    </Button>
+                  </Box>
+                  {stats?.teachersByDept?.length === 0 ? (
+                    <Typography color="text.secondary" textAlign="center" py={2}>
+                      No teachers yet
+                    </Typography>
+                  ) : (
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><strong>Department</strong></TableCell>
+                          <TableCell><strong>Teachers</strong></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {stats?.teachersByDept?.map((t) => (
+                          <TableRow key={t._id}>
+                            <TableCell>{t._id || 'General'}</TableCell>
+                            <TableCell>
+                              <Chip label={t.count} size="small" color="success" />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Quick Actions */}
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" fontWeight={600} mb={2}>Quick Actions</Typography>
+                  <Grid container spacing={2}>
+                    {[
+                      { label: 'Post Notice',       path: '/admin/notices',    color: 'primary'   },
+                      { label: 'Add Course',         path: '/admin/courses',    color: 'success'   },
+                      { label: 'Mark Attendance',    path: '/admin/attendance', color: 'warning'   },
+                      { label: 'Add Result',         path: '/admin/results',    color: 'secondary' },
+                      { label: 'View Applications',  path: '/admin/admissions', color: 'info'      },
+                      { label: 'View Messages',      path: '/admin/messages',   color: 'error'     },
+                    ].map((a) => (
+                      <Grid item xs={6} key={a.label}>
+                        <Button
+                          variant="outlined"
+                          color={a.color}
+                          fullWidth
+                          onClick={() => navigate(a.path)}
+                          sx={{ py: 1.5, fontWeight: 600 }}
+                        >
+                          {a.label}
+                        </Button>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </CardContent> 
+              </Card>
+            </Grid>
+          </Grid>
+        </>
+      )}
+    </Layout>
   )
 }
 

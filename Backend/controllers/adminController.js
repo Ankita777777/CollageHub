@@ -15,11 +15,35 @@ const getDashboardStats = async (req, res) => {
       { $match: { status: 'completed' } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ])
+
+    // Students by program
+    const studentsByProgram = await Student.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: '$program', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ])
+
+    // Students by semester
+    const studentsBySemester = await Student.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: '$semester', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ])
+
+    // Teachers by department
+    const teachersByDept = await Teacher.aggregate([
+      { $group: { _id: '$department', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ])
+
     return res.json({
       totalStudents,
       totalTeachers,
       totalCourses,
-      totalRevenue: revenueData[0]?.total || 0,
+      totalRevenue:      revenueData[0]?.total || 0,
+      studentsByProgram,
+      studentsBySemester,
+      teachersByDept,
     })
   } catch (err) {
     return res.status(500).json({ message: err.message })
