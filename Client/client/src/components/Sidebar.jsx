@@ -3,6 +3,9 @@ import {
   Box, List, ListItemButton, ListItemIcon, ListItemText,
   Typography, Divider, IconButton, Tooltip, Avatar
 } from '@mui/material'
+import LocalLibraryIcon      from '@mui/icons-material/LocalLibrary'
+import EmojiEventsIcon       from '@mui/icons-material/EmojiEvents'
+import FeedbackIcon          from '@mui/icons-material/Feedback'
 import BadgeIcon from '@mui/icons-material/Badge'
 import DashboardIcon      from '@mui/icons-material/Dashboard'
 import EventNoteIcon      from '@mui/icons-material/EventNote'
@@ -28,16 +31,21 @@ import CalendarMonthIcon      from '@mui/icons-material/CalendarMonth'
 import ReportProblemIcon      from '@mui/icons-material/ReportProblem'
 const menuItems = {
   student: [
-   { label: 'Dashboard',   icon: <DashboardIcon />,      path: '/student/dashboard' },
-  { label: 'Attendance',  icon: <EventNoteIcon />,       path: '/student/attendance' },
-  { label: 'Results',     icon: <AssignmentIcon />,      path: '/student/results' },
-  { label: 'Assignments', icon: <AssignmentTurnedInIcon />, path: '/student/assignments' },
-  { label: 'Timetable',   icon: <CalendarMonthIcon />,   path: '/student/timetable' },
-  { label: 'Fee',         icon: <PaymentIcon />,         path: '/student/fee' },
-  { label: 'Leave',       icon: <BeachAccessIcon />,     path: '/student/leave' },
-  { label: 'Complaints',  icon: <ReportProblemIcon />,   path: '/student/complaints' },
-  { label: 'My Profile',  icon: <PersonIcon />,          path: '/student/profile' },
-  { label: 'Notices',     icon: <NotificationsIcon />,   path: '/notices' },
+   { label: 'Dashboard',       icon: <DashboardIcon />,          path: '/student/dashboard'    },
+  { label: 'Attendance',      icon: <EventNoteIcon />,           path: '/student/attendance'   },
+  { label: 'Results',         icon: <AssignmentIcon />,          path: '/student/results'      },
+  { label: 'Assignments',     icon: <AssignmentTurnedInIcon />,  path: '/student/assignments'  },
+  { label: 'Study Materials', icon: <MenuBookIcon />,            path: '/student/materials'    },
+  { label: 'Timetable',       icon: <CalendarMonthIcon />,       path: '/student/timetable'    },
+  { label: 'Library',         icon: <LocalLibraryIcon />,        path: '/student/library'      },
+  { label: 'Events',          icon: <EmojiEventsIcon />,         path: '/student/events'       },
+  { label: 'Scholarships',    icon: <SchoolIcon />,              path: '/student/scholarships' },
+  { label: 'Fee',             icon: <PaymentIcon />,             path: '/student/fee'          },
+  { label: 'Leave',           icon: <BeachAccessIcon />,         path: '/student/leave'        },
+  { label: 'Complaints',      icon: <ReportProblemIcon />,       path: '/student/complaints'   },
+  { label: 'Feedback',        icon: <FeedbackIcon />,            path: '/student/feedback'     },
+  { label: 'My Profile',      icon: <PersonIcon />,              path: '/student/profile'      },
+  { label: 'Notices',         icon: <NotificationsIcon />,       path: '/notices'              },
 ],
   teacher: [
   { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/teacher/dashboard' },

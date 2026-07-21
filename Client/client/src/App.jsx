@@ -35,7 +35,11 @@ import Results          from './pages/dashboard/student/Results'
 import Fee              from './pages/dashboard/student/Fee'
 import Leave            from './pages/dashboard/student/Leave'
 import StudentProfile from './pages/dashboard/student/StudentProfile'
-
+import StudyMaterials from './pages/dashboard/student/StudyMaterials'
+import Events         from './pages/dashboard/student/Events'
+import Library        from './pages/dashboard/student/Library'
+import Scholarships   from './pages/dashboard/student/Scholarships'
+import Feedback       from './pages/dashboard/student/Feedback'
 // Teacher Pages
 import TeacherDashboard from './pages/dashboard/TeacherDashboard'
 import EnterResult      from './pages/dashboard/teacher/EnterResult'
@@ -64,7 +68,11 @@ function App() {
   {/* existing routes */}
   <Route path="/student/idcard" element={<IDCard />} />
   <Route path="/student/profile" element={<StudentProfile />} />
-
+<Route path="/student/materials"    element={<StudyMaterials />} />
+<Route path="/student/events"       element={<Events />} />
+<Route path="/student/library"      element={<Library />} />
+<Route path="/student/scholarships" element={<Scholarships />} />
+<Route path="/student/feedback"     element={<Feedback />} />
 </Route>
 
 <Route element={<ProtectedRoute role="admin" />}>
