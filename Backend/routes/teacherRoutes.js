@@ -1,6 +1,19 @@
 const express = require('express')
 const router = express.Router()
-const { getProfile, markAttendance, getAttendanceByCourse, enterResult, getStudentsByCourse, getPendingLeaves, reviewLeave } = require('../controllers/teacherController')
+const {
+  getProfile,
+  updateProfile,
+  getMyStats,
+  getMyCourses,
+  getMyStudents,
+  getMyResults,
+  markAttendance,
+  getAttendanceByCourse,
+  enterResult,
+  getStudentsByCourse,
+  getPendingLeaves,
+  reviewLeave,
+} = require('../controllers/teacherController')
 const { protect } = require('../middleware/authMiddleware')
 const { authorize } = require('../middleware/roleMiddleware')
 

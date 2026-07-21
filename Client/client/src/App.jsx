@@ -19,6 +19,11 @@ import ManageNotices    from './pages/dashboard/admin/ManageNotices'
 import ManageResults    from './pages/dashboard/admin/ManageResults'
 import ManageAttendance from './pages/dashboard/admin/ManageAttendance'
 import ManageMessages from './pages/dashboard/admin/ManageMessages'
+import MyCourses         from './pages/dashboard/teacher/MyCourses'
+import MyStudents        from './pages/dashboard/teacher/MyStudents'
+import TeacherAttendance from './pages/dashboard/teacher/TeacherAttendance'
+import TeacherNotice     from './pages/dashboard/teacher/TeacherNotice'
+import TeacherSettings   from './pages/dashboard/teacher/TeacherSettings'
 
 // Student Pages
 import StudentDashboard from './pages/dashboard/StudentDashboard'
@@ -93,9 +98,13 @@ function App() {
 
         {/* Teacher */}
         <Route element={<ProtectedRoute role="teacher" />}>
-          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-          <Route path="/teacher/results"   element={<EnterResult />} />
-          <Route path="/teacher/leaves"    element={<TeacherLeaves />} />
+         <Route path="/teacher/dashboard"  element={<TeacherDashboard />} />
+  <Route path="/teacher/courses"    element={<MyCourses />} />
+  <Route path="/teacher/students"   element={<MyStudents />} />
+  <Route path="/teacher/attendance" element={<TeacherAttendance />} />
+  <Route path="/teacher/results"    element={<EnterResult />} />
+  <Route path="/teacher/notice"     element={<TeacherNotice />} />
+  <Route path="/teacher/settings"   element={<TeacherSettings />} />
         </Route>
 
         {/* Admin */}

@@ -4,26 +4,32 @@ const Result     = require('../models/Result')
 const Student    = require('../models/Student')
 const Leave      = require('../models/Leave')
 const Course     = require('../models/Course')
-const Notice     = require('../models/Notice')
+
+// Helper — get or create teacher profile
+const getOrCreateTeacher = async (userId) => {
+  let teacher = await Teacher.findOne({ user: userId })
+  if (!teacher) {
+    teacher = await Teacher.create({
+      user:        userId,
+      employeeId:  `EMP${Date.now()}`,
+      department:  'General',
+      designation: 'Lecturer',
+      phone:       '',
+      address:     '',
+      qualification: '',
+    })
+  }
+  return teacher
+}
 
 // @GET /api/teachers/profile
 const getProfile = async (req, res) => {
   try {
-    let teacher = await Teacher.findOne({ user: req.user._id })
+    const teacher = await getOrCreateTeacher(req.user._id)
+    const full    = await Teacher.findById(teacher._id)
       .populate('user', 'name email photo')
       .populate('subjects', 'name code')
-
-    if (!teacher) {
-      teacher = await Teacher.create({
-        user:        req.user._id,
-        employeeId:  `EMP${Date.now()}`,
-        department:  'General',
-        designation: 'Lecturer',
-      })
-      teacher = await Teacher.findOne({ user: req.user._id })
-        .populate('user', 'name email photo')
-    }
-    return res.json(teacher)
+    return res.json(full)
   } catch (err) {
     return res.status(500).json({ message: err.message })
   }
@@ -32,9 +38,11 @@ const getProfile = async (req, res) => {
 // @PUT /api/teachers/profile
 const updateProfile = async (req, res) => {
   try {
-    const { phone, address, qualification, department, designation } = req.body
-    const teacher = await Teacher.findOne({ user: req.user._id })
-    if (!teacher) return res.status(404).json({ message: 'Teacher not found' })
+    const teacher = await getOrCreateTeacher(req.user._id)
+    const {
+      phone, address, qualification,
+      department, designation, photo, name
+    } = req.body
 
     if (phone)         teacher.phone         = phone
     if (address)       teacher.address       = address
@@ -43,7 +51,18 @@ const updateProfile = async (req, res) => {
     if (designation)   teacher.designation   = designation
     await teacher.save()
 
-    return res.json({ message: 'Profile updated', teacher })
+    // Update name and photo in User model
+    const User = require('../models/User')
+    const updateData = {}
+    if (photo) updateData.photo = photo
+    if (name)  updateData.name  = name
+    if (Object.keys(updateData).length > 0) {
+      await User.findByIdAndUpdate(req.user._id, updateData)
+    }
+
+    const updated = await Teacher.findById(teacher._id)
+      .populate('user', 'name email photo')
+    return res.json({ message: 'Profile updated successfully', teacher: updated })
   } catch (err) {
     return res.status(500).json({ message: err.message })
   }
@@ -52,13 +71,9 @@ const updateProfile = async (req, res) => {
 // @GET /api/teachers/stats
 const getMyStats = async (req, res) => {
   try {
-    const teacher = await Teacher.findOne({ user: req.user._id })
-
-    // Courses assigned to this teacher
-    const myCourses = await Course.find({ teacher: teacher?._id })
+    const teacher   = await getOrCreateTeacher(req.user._id)
+    const myCourses = await Course.find({ teacher: teacher._id })
     const courseIds = myCourses.map((c) => c._id)
-
-    // Students in those courses
     const programs  = [...new Set(myCourses.map((c) => c.program))]
     const semesters = [...new Set(myCourses.map((c) => c.semester))]
 
@@ -71,19 +86,12 @@ const getMyStats = async (req, res) => {
       })
     }
 
-    // Total attendance records marked by this teacher
     const attendanceMarked = await Attendance.countDocuments({ markedBy: req.user._id })
-
-    // Total results entered
-    const resultsEntered = await Result.countDocuments({
-      course: { $in: courseIds }
-    })
-
-    // Pending leaves
-    const pendingLeaves = await Leave.countDocuments({ status: 'pending' })
+    const resultsEntered   = await Result.countDocuments({ course: { $in: courseIds } })
+    const pendingLeaves    = await Leave.countDocuments({ status: 'pending' })
 
     return res.json({
-      totalCourses:    myCourses.length,
+      totalCourses: myCourses.length,
       totalStudents,
       attendanceMarked,
       resultsEntered,
@@ -97,8 +105,8 @@ const getMyStats = async (req, res) => {
 // @GET /api/teachers/my-courses
 const getMyCourses = async (req, res) => {
   try {
-    const teacher = await Teacher.findOne({ user: req.user._id })
-    const courses = await Course.find({ teacher: teacher?._id })
+    const teacher = await getOrCreateTeacher(req.user._id)
+    const courses = await Course.find({ teacher: teacher._id })
     return res.json(courses)
   } catch (err) {
     return res.status(500).json({ message: err.message })
@@ -108,10 +116,12 @@ const getMyCourses = async (req, res) => {
 // @GET /api/teachers/my-students
 const getMyStudents = async (req, res) => {
   try {
-    const teacher   = await Teacher.findOne({ user: req.user._id })
-    const myCourses = await Course.find({ teacher: teacher?._id })
+    const teacher   = await getOrCreateTeacher(req.user._id)
+    const myCourses = await Course.find({ teacher: teacher._id })
     const programs  = [...new Set(myCourses.map((c) => c.program))]
     const semesters = [...new Set(myCourses.map((c) => c.semester))]
+
+    if (programs.length === 0) return res.json([])
 
     const students = await Student.find({
       program:  { $in: programs },
@@ -128,8 +138,8 @@ const getMyStudents = async (req, res) => {
 // @GET /api/teachers/my-results
 const getMyResults = async (req, res) => {
   try {
-    const teacher   = await Teacher.findOne({ user: req.user._id })
-    const myCourses = await Course.find({ teacher: teacher?._id })
+    const teacher   = await getOrCreateTeacher(req.user._id)
+    const myCourses = await Course.find({ teacher: teacher._id })
     const courseIds = myCourses.map((c) => c._id)
 
     const results = await Result.find({ course: { $in: courseIds } })
@@ -147,21 +157,13 @@ const getMyResults = async (req, res) => {
 const markAttendance = async (req, res) => {
   try {
     const { courseId, date, records } = req.body
-
     const bulkOps = records.map((r) => ({
       updateOne: {
-        filter: {
-          student: r.studentId,
-          course:  courseId,
-          date:    new Date(date),
-        },
-        update: {
-          $set: { status: r.status, markedBy: req.user._id }
-        },
+        filter: { student: r.studentId, course: courseId, date: new Date(date) },
+        update: { $set: { status: r.status, markedBy: req.user._id } },
         upsert: true,
       },
     }))
-
     await Attendance.bulkWrite(bulkOps)
     return res.json({ message: `Attendance marked for ${records.length} students` })
   } catch (err) {
@@ -239,9 +241,6 @@ const getPendingLeaves = async (req, res) => {
 const reviewLeave = async (req, res) => {
   try {
     const { status, reviewNote } = req.body
-    if (!['approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ message: 'Status must be approved or rejected' })
-    }
     const leave = await Leave.findByIdAndUpdate(
       req.params.id,
       { status, reviewNote: reviewNote || '', reviewedBy: req.user._id },
