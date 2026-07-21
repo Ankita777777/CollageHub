@@ -6,12 +6,16 @@ const {
 } = require('../controllers/admissionController')
 const { protect }   = require('../middleware/authMiddleware')
 const { authorize } = require('../middleware/roleMiddleware')
-const upload        = require('../middleware/uploadMiddleware')
+const { uploadMarksheet } = require('../middleware/uploadMiddleware')
 const { validateAdmission } = require('../middleware/validateMiddleware')
 
 // Public — with file upload
-router.post('/', upload.single('marksheet'),validateAdmission, submitAdmission)
-
+router.post(
+  '/',
+  uploadMarksheet.single('marksheet'),
+  validateAdmission,
+  submitAdmission
+)
 // Admin only
 router.get('/',       protect, authorize('admin'), getAllAdmissions)
 router.get('/:id',    protect, authorize('admin'), getAdmission)
