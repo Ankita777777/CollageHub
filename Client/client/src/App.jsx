@@ -31,6 +31,7 @@ import Attendance       from './pages/dashboard/student/Attendance'
 import Results          from './pages/dashboard/student/Results'
 import Fee              from './pages/dashboard/student/Fee'
 import Leave            from './pages/dashboard/student/Leave'
+import StudentProfile from './pages/dashboard/student/StudentProfile'
 
 // Teacher Pages
 import TeacherDashboard from './pages/dashboard/TeacherDashboard'
@@ -59,6 +60,8 @@ function App() {
         <Route element={<ProtectedRoute role="student" />}>
   {/* existing routes */}
   <Route path="/student/idcard" element={<IDCard />} />
+  <Route path="/student/profile" element={<StudentProfile />} />
+
 </Route>
 
 <Route element={<ProtectedRoute role="admin" />}>

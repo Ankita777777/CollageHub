@@ -99,6 +99,35 @@ const applyLeave = async (req, res) => {
     res.status(500).json({ message: err.message })
   }
 }
+// @PUT /api/students/profile
+const updateProfile = async (req, res) => {
+  try {
+    const student = await Student.findOne({ user: req.user._id })
+    if (!student) return res.status(404).json({ message: 'Student profile not found' })
+
+    const { phone, address, fatherName, name } = req.body
+
+    if (phone)      student.phone      = phone
+    if (address)    student.address    = address
+    if (fatherName) student.fatherName = fatherName
+    await student.save()
+
+    // Update User name and photo
+    const User = require('../models/User')
+    const updateData = {}
+    if (req.file?.path) updateData.photo = req.file.path   // Cloudinary URL
+    if (name)           updateData.name  = name
+    if (Object.keys(updateData).length > 0) {
+      await User.findByIdAndUpdate(req.user._id, updateData)
+    }
+
+    const updated = await Student.findById(student._id)
+      .populate('user', 'name email photo')
+    return res.json({ message: 'Profile updated', student: updated })
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
+  }
+}
 
 const getLeaves = async (req, res) => {
   try {

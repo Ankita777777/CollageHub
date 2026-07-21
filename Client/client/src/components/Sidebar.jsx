@@ -20,6 +20,7 @@ import ChevronRightIcon   from '@mui/icons-material/ChevronRight'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { logout } from '../features/auth/authSlice'
+import PersonIcon from '@mui/icons-material/Person'
 import SettingsIcon from '@mui/icons-material/Settings'
 import EmailIcon    from '@mui/icons-material/Email'
 const menuItems = {
@@ -31,6 +32,7 @@ const menuItems = {
     { label: 'Leave',       icon: <BeachAccessIcon />,    path: '/student/leave' },
     { label: 'ID Card',     icon: <BadgeIcon />,          path: '/student/idcard' },  // NEW
     { label: 'Notices',     icon: <NotificationsIcon />,  path: '/notices' },
+  { label: 'My Profile', icon: <PersonIcon />, path: '/student/profile' },
   ],
   teacher: [
   { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/teacher/dashboard' },
