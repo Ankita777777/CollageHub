@@ -33,6 +33,14 @@ const Navbar = () => {
     navigate('/login')
   }
 
+  const navLinks = [
+  { label: 'Home',         path: '/' },
+  { label: 'About',        path: '/about' },
+  { label: 'Courses',      path: '/courses' },
+  { label: 'Result Check', path: '/results/check' },  // NEW
+  { label: 'Admissions',   path: '/admissions' },
+  { label: 'Contact',      path: '/contact' },
+]
   const getDashboardPath = () => {
     if (!user) return '/login'
     return `/${user.role}/dashboard`

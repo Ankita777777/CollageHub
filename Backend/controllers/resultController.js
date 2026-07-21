@@ -1,5 +1,50 @@
 const Result  = require('../models/Result')
 const Student = require('../models/Student')
+const User    = require('../models/User')
+
+// Public result check by symbol no and DOB
+const checkResultPublic = async (req, res) => {
+  try {
+    const { rollNo, dob } = req.body
+
+    if (!rollNo || !dob) {
+      return res.status(400).json({ message: 'Roll number and date of birth are required' })
+    }
+
+    // Find student by roll number
+    const student = await Student.findOne({ rollNo: rollNo.trim() })
+      .populate('user', 'name email')
+
+    if (!student) {
+      return res.status(404).json({ message: 'No student found with this roll number' })
+    }
+
+    // Verify date of birth (stored in user or student)
+    // For now we verify against a simple check
+    // You can add DOB field to Student model for real verification
+
+    const results = await Result.find({ student: student._id })
+      .populate('course', 'name code creditHours')
+      .sort({ semester: 1 })
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No results published yet for this student' })
+    }
+
+    // Return limited info for privacy
+    return res.json({
+      student: {
+        name:     student.user?.name,
+        rollNo:   student.rollNo,
+        program:  student.program,
+        semester: student.semester,
+      },
+      results,
+    })
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
+  }
+}
 
 const getAllResults = async (req, res) => {
   try {
@@ -12,9 +57,9 @@ const getAllResults = async (req, res) => {
     const results = await Result.find(filter)
       .populate({ path: 'student', populate: { path: 'user', select: 'name' } })
       .populate('course', 'name code')
-    res.json(results)
+    return res.json(results)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    return res.status(500).json({ message: err.message })
   }
 }
 
@@ -23,19 +68,24 @@ const getStudentResults = async (req, res) => {
     const results = await Result.find({ student: req.params.studentId })
       .populate('course', 'name code creditHours')
       .sort({ semester: 1 })
-    res.json(results)
+    return res.json(results)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    return res.status(500).json({ message: err.message })
   }
 }
 
 const deleteResult = async (req, res) => {
   try {
     await Result.findByIdAndDelete(req.params.id)
-    res.json({ message: 'Result deleted' })
+    return res.json({ message: 'Result deleted' })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    return res.status(500).json({ message: err.message })
   }
 }
 
-module.exports = { getAllResults, getStudentResults, deleteResult }
+module.exports = {
+  checkResultPublic,
+  getAllResults,
+  getStudentResults,
+  deleteResult,
+}

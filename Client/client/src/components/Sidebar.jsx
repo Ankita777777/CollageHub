@@ -23,17 +23,22 @@ import { logout } from '../features/auth/authSlice'
 import PersonIcon from '@mui/icons-material/Person'
 import SettingsIcon from '@mui/icons-material/Settings'
 import EmailIcon    from '@mui/icons-material/Email'
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
+import CalendarMonthIcon      from '@mui/icons-material/CalendarMonth'
+import ReportProblemIcon      from '@mui/icons-material/ReportProblem'
 const menuItems = {
   student: [
-    { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/student/dashboard' },
-    { label: 'Attendance',  icon: <EventNoteIcon />,      path: '/student/attendance' },
-    { label: 'Results',     icon: <AssignmentIcon />,     path: '/student/results' },
-    { label: 'Fee',         icon: <PaymentIcon />,        path: '/student/fee' },
-    { label: 'Leave',       icon: <BeachAccessIcon />,    path: '/student/leave' },
-    { label: 'ID Card',     icon: <BadgeIcon />,          path: '/student/idcard' },  // NEW
-    { label: 'Notices',     icon: <NotificationsIcon />,  path: '/notices' },
-  { label: 'My Profile', icon: <PersonIcon />, path: '/student/profile' },
-  ],
+   { label: 'Dashboard',   icon: <DashboardIcon />,      path: '/student/dashboard' },
+  { label: 'Attendance',  icon: <EventNoteIcon />,       path: '/student/attendance' },
+  { label: 'Results',     icon: <AssignmentIcon />,      path: '/student/results' },
+  { label: 'Assignments', icon: <AssignmentTurnedInIcon />, path: '/student/assignments' },
+  { label: 'Timetable',   icon: <CalendarMonthIcon />,   path: '/student/timetable' },
+  { label: 'Fee',         icon: <PaymentIcon />,         path: '/student/fee' },
+  { label: 'Leave',       icon: <BeachAccessIcon />,     path: '/student/leave' },
+  { label: 'Complaints',  icon: <ReportProblemIcon />,   path: '/student/complaints' },
+  { label: 'My Profile',  icon: <PersonIcon />,          path: '/student/profile' },
+  { label: 'Notices',     icon: <NotificationsIcon />,   path: '/notices' },
+],
   teacher: [
   { label: 'Dashboard',   icon: <DashboardIcon />,     path: '/teacher/dashboard' },
   { label: 'My Courses',  icon: <MenuBookIcon />,       path: '/teacher/courses' },

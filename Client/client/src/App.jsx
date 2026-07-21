@@ -24,7 +24,10 @@ import MyStudents        from './pages/dashboard/teacher/MyStudents'
 import TeacherAttendance from './pages/dashboard/teacher/TeacherAttendance'
 import TeacherNotice     from './pages/dashboard/teacher/TeacherNotice'
 import TeacherSettings   from './pages/dashboard/teacher/TeacherSettings'
-
+import ResultCheck  from './pages/ResultCheck'
+import Complaints   from './pages/dashboard/student/Complaints'
+import Assignments  from './pages/dashboard/student/Assignments'
+import Timetable    from './pages/dashboard/student/Timetable'
 // Student Pages
 import StudentDashboard from './pages/dashboard/StudentDashboard'
 import Attendance       from './pages/dashboard/student/Attendance'
@@ -89,7 +92,8 @@ function App() {
         <Route path="/register"               element={<Register />} />
         <Route path="/forgot-password"        element={<ForgotPassword />} />
         <Route path="/reset-password/:token"  element={<ResetPassword />} />
-
+        <Route path="/results/check" element={<ResultCheck />} />
+ 
         {/* Student */}
         <Route element={<ProtectedRoute role="student" />}>
           <Route path="/student/dashboard"  element={<StudentDashboard />} />
