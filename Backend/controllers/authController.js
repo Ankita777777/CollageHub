@@ -7,7 +7,6 @@ const generateToken = (id) =>
     expiresIn: process.env.JWT_EXPIRE || '7d',
   })
 
-// @POST /api/auth/register
 const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body
@@ -16,16 +15,16 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Please fill all required fields' })
     }
 
-    const exists = await User.findOne({ email })
+    const exists = await User.findOne({ email: email.toLowerCase().trim() })
     if (exists) {
       return res.status(400).json({ message: 'Email already registered' })
     }
 
     const user = await User.create({
-      name,
-      email,
+      name:     name.trim(),
+      email:    email.toLowerCase().trim(),
       password,
-      role: role || 'student',
+      role:     role || 'student',
     })
 
     return res.status(201).json({
@@ -33,71 +32,84 @@ const register = async (req, res) => {
       name:  user.name,
       email: user.email,
       role:  user.role,
+      photo: user.photo,
       token: generateToken(user._id),
     })
-  } catch (error) {
-    console.error('Register error:', error.message)
-    return res.status(500).json({ message: error.message || 'Registration failed' })
+  } catch (err) {
+    console.error('Register error:', err.message)
+    return res.status(500).json({ message: err.message })
   }
 }
 
-// @POST /api/auth/login
 const login = async (req, res) => {
   try {
     const { email, password } = req.body
+
+    console.log('Login attempt for:', email)
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Please provide email and password' })
     }
 
-    const user = await User.findOne({ email })
+    // Find user with case insensitive email
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+
     if (!user) {
+      console.log('User not found for email:', email)
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
+    console.log('User found:', user.email, '| Role:', user.role, '| Active:', user.isActive)
+
     const isMatch = await user.matchPassword(password)
+    console.log('Password match:', isMatch)
+
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
     if (!user.isActive) {
-      return res.status(403).json({ message: 'Account deactivated. Contact admin.' })
+      return res.status(403).json({ message: 'Account is deactivated. Contact admin.' })
     }
+
+    console.log('Login successful for:', user.email)
 
     return res.json({
       _id:   user._id,
       name:  user.name,
       email: user.email,
       role:  user.role,
-      photo: user.photo,
+      photo: user.photo || '',
       token: generateToken(user._id),
     })
-  } catch (error) {
-    console.error('Login error:', error.message)
-    return res.status(500).json({ message: error.message || 'Login failed' })
+  } catch (err) {
+    console.error('Login error:', err.message)
+    return res.status(500).json({ message: err.message })
   }
 }
 
-// @GET /api/auth/me
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password')
     if (!user) return res.status(404).json({ message: 'User not found' })
     return res.json(user)
-  } catch (error) {
-    return res.status(500).json({ message: error.message })
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
   }
 }
 
-// @PUT /api/auth/update-profile
 const updateProfile = async (req, res) => {
   try {
     const { name, photo } = req.body
     const user = await User.findById(req.user._id)
     if (!user) return res.status(404).json({ message: 'User not found' })
 
-    user.name  = name  || user.name
-    user.photo = photo || user.photo
+    if (name)  user.name  = name.trim()
+    if (photo) user.photo = photo
+
+    // Handle uploaded file
+    if (req.file?.path) user.photo = req.file.path
+
     await user.save()
 
     return res.json({
@@ -107,12 +119,11 @@ const updateProfile = async (req, res) => {
       role:  user.role,
       photo: user.photo,
     })
-  } catch (error) {
-    return res.status(500).json({ message: error.message })
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
   }
 }
 
-// @PUT /api/auth/change-password
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body
@@ -120,12 +131,11 @@ const changePassword = async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Please provide both passwords' })
     }
-
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' })
+      return res.status(400).json({ message: 'New password must be at least 6 characters' })
     }
 
-    const user = await User.findById(req.user._id)
+    const user    = await User.findById(req.user._id)
     const isMatch = await user.matchPassword(currentPassword)
     if (!isMatch) {
       return res.status(401).json({ message: 'Current password is incorrect' })
@@ -135,21 +145,19 @@ const changePassword = async (req, res) => {
     await user.save()
 
     return res.json({ message: 'Password changed successfully' })
-  } catch (error) {
-    return res.status(500).json({ message: error.message })
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
   }
 }
 
-// @POST /api/auth/forgot-password
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body
-
     if (!email) {
       return res.status(400).json({ message: 'Please provide your email' })
     }
 
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
     if (!user) {
       return res.status(404).json({ message: 'No account found with that email' })
     }
@@ -160,54 +168,21 @@ const forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false })
 
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`
-    console.log('🔗 Reset URL:', resetUrl)
+    console.log('Password reset URL:', resetUrl)
 
-    // Only send email if SMTP is configured
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-      try {
-        const sendEmail = require('../utils/sendEmail')
-        await sendEmail({
-          to:      user.email,
-          subject: 'PMC College — Password Reset',
-          html: `
-            <h2>Password Reset</h2>
-            <p>Hello ${user.name},</p>
-            <a href="${resetUrl}">Click here to reset your password</a>
-            <p>Expires in 10 minutes.</p>
-          `,
-        })
-        return res.json({ message: `Reset link sent to ${email}` })
-      } catch (emailErr) {
-        console.error('Email error:', emailErr.message)
-        user.resetPasswordToken  = undefined
-        user.resetPasswordExpire = undefined
-        await user.save({ validateBeforeSave: false })
-        return res.status(500).json({ message: 'Email could not be sent' })
-      }
-    }
-
-    // No SMTP — return token for testing
     return res.json({
-      message:    'Reset token created (check terminal for URL)',
-      resetToken,
+      message:  'Reset token created. Check terminal for URL.',
       resetUrl,
     })
-  } catch (error) {
-    console.error('Forgot password error:', error.message)
-    return res.status(500).json({ message: error.message || 'Something went wrong' })
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
   }
 }
 
-// @POST /api/auth/reset-password/:token
 const resetPassword = async (req, res) => {
   try {
     const { password } = req.body
-
-    if (!password) {
-      return res.status(400).json({ message: 'Please provide a new password' })
-    }
-
-    if (password.length < 6) {
+    if (!password || password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters' })
     }
 
@@ -234,18 +209,13 @@ const resetPassword = async (req, res) => {
       message: 'Password reset successful. You can now login.',
       token:   generateToken(user._id),
     })
-  } catch (error) {
-    console.error('Reset password error:', error.message)
-    return res.status(500).json({ message: error.message || 'Password reset failed' })
+  } catch (err) {
+    return res.status(500).json({ message: err.message })
   }
 }
 
 module.exports = {
-  register,
-  login,
-  getMe,
-  updateProfile,
-  changePassword,
-  forgotPassword,
-  resetPassword,
+  register, login, getMe,
+  updateProfile, changePassword,
+  forgotPassword, resetPassword,
 }
