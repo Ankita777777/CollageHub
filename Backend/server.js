@@ -1,49 +1,15 @@
-const express      = require('express')
-const dotenv       = require('dotenv')
-const cors         = require('cors')
-const helmet       = require('helmet')
-const morgan       = require('morgan')
-const compression  = require('compression')
-const rateLimit    = require('express-rate-limit')
-const path         = require('path')
-const connectDB    = require('./config/db')
+const express     = require('express')
+const dotenv      = require('dotenv')
+const cors        = require('cors')
+const path        = require('path')
+const connectDB   = require('./config/db')
+const { notFound, errorHandler } = require('./middleware/errorMiddleware')
 
 dotenv.config()
 connectDB()
 
 const app = express()
 
-// ── Security Headers ──────────────────────────────
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
-}))
-
-// ── Compression ───────────────────────────────────
-app.use(compression())
-
-// ── Logging ───────────────────────────────────────
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'))
-}
-
-// ── Rate Limiting ─────────────────────────────────
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  max:      100,
-  message:  { message: 'Too many requests, please try again later' },
-})
-app.use('/api/', limiter)
-
-// Stricter limit for auth routes
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,  // 1 hour
-  max:      20,
-  message:  { message: 'Too many login attempts, please try again after 1 hour' },
-})
-app.use('/api/auth/login',    authLimiter)
-app.use('/api/auth/register', authLimiter)
-
-// ── CORS ──────────────────────────────────────────
 app.use(cors({
   origin: [
     'http://localhost:5173',
@@ -51,26 +17,16 @@ app.use(cors({
     process.env.CLIENT_URL,
   ].filter(Boolean),
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
-
-// ── Static Files ──────────────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
-// ── Health Check ──────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({
-    status:    'ok',
-    timestamp: new Date().toISOString(),
-    uptime:    process.uptime(),
-  })
-})
+// Health check
+app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }))
 
-// ── Routes ────────────────────────────────────────
+// All routes
 app.use('/api/auth',            require('./routes/authRoutes'))
 app.use('/api/students',        require('./routes/studentRoutes'))
 app.use('/api/teachers',        require('./routes/teacherRoutes'))
@@ -90,33 +46,8 @@ app.use('/api/library',         require('./routes/libraryRoutes'))
 app.use('/api/scholarships',    require('./routes/scholarshipRoutes'))
 app.use('/api/feedback',        require('./routes/feedbackRoutes'))
 
-// ── 404 Handler ───────────────────────────────────
-app.use((req, res) => {
-  res.status(404).json({ message: `Route ${req.originalUrl} not found` })
-})
-
-// ── Global Error Handler ──────────────────────────
-app.use((err, req, res, next) => {
-  console.error('Global Error:', err.message)
-  const status = err.statusCode || res.statusCode || 500
-  res.status(status).json({
-    message: err.message || 'Internal Server Error',
-    stack:   process.env.NODE_ENV === 'production' ? null : err.stack,
-  })
-})
+app.use(notFound)
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000
-const server = app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT} in ${process.env.NODE_ENV} mode`)
-})
-
-// ── Handle Unhandled Rejections ───────────────────
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err.message)
-  server.close(() => process.exit(1))
-})
-
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err.message)
-  process.exit(1)
-})
+app.listen(PORT, () => console.log(`✅ Server on port ${PORT}`))

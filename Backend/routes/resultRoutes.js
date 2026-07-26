@@ -1,15 +1,15 @@
 const express = require('express')
 const router  = express.Router()
 const {
-  createTimetable, getMyTimetable,
-  getAllTimetables, deleteTimetable,
-} = require('../controllers/timetableController')
+  checkResultPublic, getAllResults,
+  getStudentResults, deleteResult,
+} = require('../controllers/resultController')
 const { protect }   = require('../middleware/authMiddleware')
 const { authorize } = require('../middleware/roleMiddleware')
 
-router.post('/',    protect, authorize('admin'), createTimetable)
-router.get('/my',   protect, authorize('student'), getMyTimetable)
-router.get('/',     protect, authorize('admin', 'teacher'), getAllTimetables)
-router.delete('/:id', protect, authorize('admin'), deleteTimetable)
+router.post('/check',          checkResultPublic)
+router.get('/',                protect, authorize('admin'), getAllResults)
+router.get('/:studentId',      protect, authorize('admin', 'teacher'), getStudentResults)
+router.delete('/:id',          protect, authorize('admin'), deleteResult)
 
 module.exports = router
