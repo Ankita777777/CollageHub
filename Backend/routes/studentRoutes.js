@@ -4,10 +4,9 @@ const {
   getProfile, updateProfile, getAttendance,
   getResults, getFeeStatus, applyLeave, getLeaves,
 } = require('../controllers/studentController')
-const { protect }   = require('../middleware/authMiddleware')
-const { authorize } = require('../middleware/roleMiddleware')
+const { protect }       = require('../middleware/authMiddleware')
+const { authorize }     = require('../middleware/roleMiddleware')
 const { uploadProfile } = require('../middleware/uploadMiddleware')
-const { validateLeave } = require('../middleware/validateMiddleware')
 
 router.use(protect, authorize('student'))
 
@@ -16,7 +15,7 @@ router.put('/profile',    uploadProfile.single('photo'), updateProfile)
 router.get('/attendance', getAttendance)
 router.get('/results',    getResults)
 router.get('/fee',        getFeeStatus)
-router.post('/leave',     validateLeave, applyLeave)
+router.post('/leave',     applyLeave)
 router.get('/leave',      getLeaves)
 
 module.exports = router

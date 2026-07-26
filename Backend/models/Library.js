@@ -8,8 +8,8 @@ const librarySchema = new mongoose.Schema({
   program:     { type: String },
   totalCopies: { type: Number, default: 1 },
   available:   { type: Number, default: 1 },
-  cover:       { type: String },
-  description: { type: String },
+  cover:       { type: String, default: '' },
+  description: { type: String, default: '' },
   issues: [{
     student:    { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
     issueDate:  { type: Date, default: Date.now },

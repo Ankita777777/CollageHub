@@ -1,16 +1,14 @@
 const express  = require('express')
 const router   = express.Router()
 const {
-  register, login, getMe,
-  updateProfile, changePassword,
-  forgotPassword, resetPassword,
+  register, login, getMe, updateProfile,
+  changePassword, forgotPassword, resetPassword,
 } = require('../controllers/authController')
 const { protect }       = require('../middleware/authMiddleware')
-const { validateRegister, validateLogin } = require('../middleware/validateMiddleware')
 const { uploadProfile } = require('../middleware/uploadMiddleware')
 
-router.post('/register',              validateRegister, register)
-router.post('/login',                 validateLogin,    login)
+router.post('/register',              register)
+router.post('/login',                 login)
 router.get('/me',                     protect, getMe)
 router.put('/update-profile',         protect, uploadProfile.single('photo'), updateProfile)
 router.put('/change-password',        protect, changePassword)

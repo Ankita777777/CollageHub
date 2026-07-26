@@ -1,58 +1,42 @@
-const multer                  = require('multer')
-const { CloudinaryStorage }   = require('multer-storage-cloudinary')
-const cloudinary              = require('../config/cloudinary')
+const multer = require('multer')
+const path   = require('path')
+const fs     = require('fs')
 
-// Cloudinary storage for profile photos
-const profileStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder:         'pmc/profiles',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-    transformation: [{ width: 400, height: 400, crop: 'fill' }],
-  },
-})
+// Create upload dirs
+const dirs = ['uploads/profiles', 'uploads/marksheets', 'uploads/materials', 'uploads/assignments']
+dirs.forEach((dir) => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }) })
 
-// Cloudinary storage for marksheets
-const marksheetStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder:          'pmc/marksheets',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'pdf'],
-    resource_type:   'auto',
-  },
-})
+const createStorage = (folder) =>
+  multer.diskStorage({
+    destination: (req, file, cb) => cb(null, `uploads/${folder}/`),
+    filename:    (req, file, cb) => {
+      const unique = Date.now() + '-' + Math.round(Math.random() * 1e9)
+      cb(null, unique + path.extname(file.originalname).toLowerCase())
+    },
+  })
 
-// Local storage fallback if no Cloudinary
-const localStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename:    (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9)
-    cb(null, unique + require('path').extname(file.originalname))
-  },
-})
-
-const fileFilter = (req, file, cb) => {
-  const allowed = /jpeg|jpg|png|pdf/
-  const ext     = allowed.test(require('path').extname(file.originalname).toLowerCase())
-  if (ext) cb(null, true)
-  else cb(new Error('Only JPG, PNG and PDF files allowed'))
+const imageFilter = (req, file, cb) => {
+  const allowed = /jpeg|jpg|png|webp/
+  if (allowed.test(path.extname(file.originalname).toLowerCase()) &&
+      allowed.test(file.mimetype)) {
+    cb(null, true)
+  } else {
+    cb(new Error('Only JPG, PNG, WEBP images allowed'), false)
+  }
 }
 
-// Use Cloudinary if configured, else local
-const useCloudinary = process.env.CLOUDINARY_NAME &&
-                      process.env.CLOUDINARY_API_KEY &&
-                      process.env.CLOUDINARY_API_SECRET
+const fileFilter = (req, file, cb) => {
+  const allowed = /jpeg|jpg|png|pdf|doc|docx|ppt|pptx|zip|txt/
+  if (allowed.test(path.extname(file.originalname).toLowerCase())) {
+    cb(null, true)
+  } else {
+    cb(new Error('File type not allowed'), false)
+  }
+}
 
-const uploadProfile   = multer({
-  storage:    useCloudinary ? profileStorage   : localStorage,
-  fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 },  // 2MB
-})
+const uploadProfile   = multer({ storage: createStorage('profiles'),   fileFilter: imageFilter, limits: { fileSize: 2 * 1024 * 1024 } })
+const uploadMarksheet = multer({ storage: createStorage('marksheets'), fileFilter,              limits: { fileSize: 5 * 1024 * 1024 } })
+const uploadMaterial  = multer({ storage: createStorage('materials'),  fileFilter,              limits: { fileSize: 20 * 1024 * 1024 } })
+const uploadAssignment = multer({ storage: createStorage('assignments'), fileFilter,             limits: { fileSize: 10 * 1024 * 1024 } })
 
-const uploadMarksheet = multer({
-  storage:    useCloudinary ? marksheetStorage : localStorage,
-  fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },  // 5MB
-})
-
-module.exports = { uploadProfile, uploadMarksheet }
+module.exports = { uploadProfile, uploadMarksheet, uploadMaterial, uploadAssignment }

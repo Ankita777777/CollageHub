@@ -4,24 +4,19 @@ const Student = require('../models/Student')
 const initiatePayment = async (req, res) => {
   try {
     const { semester, amount, method } = req.body
-    if (!semester || !amount) {
-      return res.status(400).json({ message: 'Semester and amount are required' })
-    }
+    if (!semester || !amount) return res.status(400).json({ message: 'Semester and amount are required' })
+
     const student = await Student.findOne({ user: req.user._id })
-    if (!student) return res.status(404).json({ message: 'Student not found' })
+    if (!student)  return res.status(404).json({ message: 'Student not found' })
 
     const receiptNo = `PMC-${Date.now()}`
     const payment   = await Payment.create({
-      student: student._id,
-      amount,
-      semester,
-      method: method || 'cash',
-      receiptNo,
-      status: 'pending',
+      student: student._id, amount: Number(amount),
+      semester: Number(semester), method: method || 'cash', receiptNo,
     })
-    res.status(201).json({ message: 'Payment initiated', payment, receiptNo })
+    return res.status(201).json({ message: 'Payment initiated', payment, receiptNo })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    return res.status(500).json({ message: err.message })
   }
 }
 
@@ -37,20 +32,20 @@ const verifyPayment = async (req, res) => {
     await payment.save()
 
     await Student.findByIdAndUpdate(payment.student, { feeStatus: 'paid' })
-    res.json({ message: 'Payment verified', payment })
+    return res.json({ message: 'Payment verified', payment })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    return res.status(500).json({ message: err.message })
   }
 }
 
 const getPaymentHistory = async (req, res) => {
   try {
-    const student  = await Student.findOne({ user: req.user._id })
-    if (!student) return res.status(404).json({ message: 'Student not found' })
+    const student = await Student.findOne({ user: req.user._id })
+    if (!student)  return res.status(404).json({ message: 'Student not found' })
     const payments = await Payment.find({ student: student._id }).sort({ createdAt: -1 })
-    res.json(payments)
+    return res.json(payments)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    return res.status(500).json({ message: err.message })
   }
 }
 

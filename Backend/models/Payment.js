@@ -8,7 +8,7 @@ const paymentSchema = new mongoose.Schema({
   status:        { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
   transactionId: { type: String },
   paidAt:        { type: Date },
-  receiptNo:     { type: String, unique: true },
+  receiptNo:     { type: String },
   remarks:       { type: String },
 }, { timestamps: true })
 
