@@ -16,6 +16,13 @@ app.get('/', (req, res) => {
     message: 'CollageHub API is running 🚀'
   });
 });
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.originalUrl}`
+  });
+});
+
 app.use(cors({
   origin: [
     'http://localhost:5173',
