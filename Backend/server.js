@@ -22,16 +22,20 @@ app.use((req, res) => {
     message: `Route not found: ${req.originalUrl}`
   });
 });
+const allowedOrigins = [
+  "https://collage-hub2.vercel.app",
+  "http://localhost:5173", // local Vite dev
+];
 
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://collage-hub1.vercel.app',
-    process.env.CLIENT_URL,
-  ].filter(Boolean),
-  credentials: true,
-}))
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+
 
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
