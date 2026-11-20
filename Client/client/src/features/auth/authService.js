@@ -5,7 +5,10 @@ const login = async (credentials) => {
   if (res.data) localStorage.setItem('user', JSON.stringify(res.data))
   return res.data
 }
-
+const changePassword = async (currentPassword, newPassword) => {
+  const res = await api.put('/auth/change-password', { currentPassword, newPassword })
+  return res.data
+}
 const register = async (userData) => {
   const res = await API.post('/auth/register', userData)
   if (res.data) localStorage.setItem('user', JSON.stringify(res.data))
@@ -41,7 +44,7 @@ const resetPassword = async (token, password) => {
 
 const authService = {
   login, register, logout, getMe,
-  updateProfile, forgotPassword, resetPassword,
+  updateProfile, forgotPassword, resetPassword, changePassword
 }
 
 export default authService

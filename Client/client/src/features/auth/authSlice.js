@@ -83,7 +83,18 @@ export const resetPassword = createAsyncThunk(
     }
   }
 )
-
+export const changePassword = createAsyncThunk(
+  'auth/changePassword',
+  async ({ currentPassword, newPassword }, thunkAPI) => {
+    try {
+      return await authService.changePassword(currentPassword, newPassword)
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || 'Failed to change password'
+      )
+    }
+  }
+)
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -186,6 +197,17 @@ const authSlice = createSlice({
       .addCase(resetPassword.rejected,  (state, action) => {
         state.loading = false
         state.error   = action.payload
+              // Change Password
+      .addCase(changePassword.pending,   (state) => { state.loading = true; state.error = null })
+      .addCase(changePassword.fulfilled, (state, action) => {
+        state.loading = false
+        state.success = true
+        state.message = action.payload?.message || 'Password changed'
+      })
+      .addCase(changePassword.rejected,  (state, action) => {
+        state.loading = false
+        state.error   = action.payload
+      })
       })
   },
 })
