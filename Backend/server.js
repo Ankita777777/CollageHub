@@ -10,6 +10,12 @@ connectDB()
 
 const app = express()
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'CollageHub API is running 🚀'
+  });
+});
 app.use(cors({
   origin: [
     'http://localhost:5173',
