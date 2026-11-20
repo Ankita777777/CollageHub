@@ -17,7 +17,7 @@ const ResetPassword  = lazy(() => import('./pages/ResetPassword'))
 const ResultCheck    = lazy(() => import('./pages/ResultCheck'))
 
 // Student
-const StudentDashboard = lazy(() => import('./pages/dashboard/StudentDashboard'))
+const StudentDashboard = lazy(() => import('./pages/dashboard/studentDashboard'))
 const Attendance       = lazy(() => import('./pages/dashboard/student/Attendance'))
 const Results          = lazy(() => import('./pages/dashboard/student/Results'))
 const Fee              = lazy(() => import('./pages/dashboard/student/Fee'))
@@ -34,7 +34,7 @@ const StudentProfile   = lazy(() => import('./pages/dashboard/student/StudentPro
 const IDCard           = lazy(() => import('./pages/dashboard/student/IDCard'))
 
 // Teacher
-const TeacherDashboard = lazy(() => import('./pages/dashboard/TeacherDashboard'))
+const TeacherDashboard = lazy(() => import('./pages/dashboard/teacherDashboard'))
 const MyCourses        = lazy(() => import('./pages/dashboard/teacher/MyCourses'))
 const MyStudents       = lazy(() => import('./pages/dashboard/teacher/MyStudents'))
 const TeacherAttendance = lazy(() => import('./pages/dashboard/teacher/TeacherAttendance'))
