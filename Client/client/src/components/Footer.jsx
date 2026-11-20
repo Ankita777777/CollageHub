@@ -14,7 +14,7 @@ const Footer = () => {
             <Typography variant="h6" fontWeight={700}>PMC College</Typography>
           </Box>
           <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.8 }}>
-            Pokhara Management College — Committed to excellence in education
+            Patan Multiple Campus — Committed to excellence in education
             and shaping future leaders.
           </Typography>
         </Grid>
@@ -41,7 +41,7 @@ const Footer = () => {
           <Typography variant="subtitle1" fontWeight={600} mb={2}>Contact</Typography>
           <Box sx={{ display: 'flex', gap: 1, mb: 1.5, opacity: 0.8 }}>
             <LocationOnIcon fontSize="small" />
-            <Typography variant="body2">Pokhara, Gandaki Province, Nepal</Typography>
+            <Typography variant="body2">Lalitpur, Bagmati Province, Nepal</Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 1, mb: 1.5, opacity: 0.8 }}>
             <PhoneIcon fontSize="small" />

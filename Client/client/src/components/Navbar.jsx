@@ -92,7 +92,7 @@ const Navbar = () => {
                 color="text.secondary"
                 sx={{ display: { xs: 'none', sm: 'block' }, fontSize: 10 }}
               >
-                Pokhara Management College
+                Patan Multiple Campus
               </Typography>
             </Box>
           </Box>

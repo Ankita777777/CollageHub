@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import API from '../api/axios'
+
 import {
   Box, Container, Typography, Card, CardContent,
   Grid, TextField, MenuItem, Button, Alert,
@@ -9,8 +10,10 @@ import CheckCircleIcon  from '@mui/icons-material/CheckCircle'
 import CloudUploadIcon  from '@mui/icons-material/CloudUpload'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useSearchParams } from 'react-router-dom'
+import { PROGRAM_CODES } from '../data/programs'
 
-const programs = ['BBA', 'BCA', 'BBS', 'BCIS', 'MBA', 'MBS']
+
 const steps    = ['Personal Info', 'Academic Info', 'Review & Submit']
 
 const Admissions = () => {
@@ -21,13 +24,15 @@ const Admissions = () => {
 
   // ✅ marksheet state
   const [marksheet, setMarksheet] = useState(null)
-
+const [searchParams] = useSearchParams()
   const [form, setForm] = useState({
     name:       '',
     email:      '',
     phone:      '',
     address:    '',
-    program:    '',
+   program: PROGRAM_CODES.includes(searchParams.get('program'))
+  ? searchParams.get('program')
+  : '',
     lastSchool: '',
     percentage: '',
     message:    '',
@@ -230,9 +235,9 @@ const Admissions = () => {
                       value={form.program}
                       onChange={handleChange}
                     >
-                      {programs.map((p) => (
-                        <MenuItem key={p} value={p}>{p}</MenuItem>
-                      ))}
+                      {PROGRAM_CODES.map((p) => (
+  <MenuItem key={p} value={p}>{p}</MenuItem>
+))}
                     </TextField>
                   </Grid>
                   <Grid item xs={12} sm={6}>

@@ -13,4 +13,6 @@ export const store = configureStore({
     admission: admissionReducer,
     contact:   contactReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ serializableCheck: false }),
 })

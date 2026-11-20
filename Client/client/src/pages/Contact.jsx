@@ -40,7 +40,7 @@ const Contact = () => {
     {
       icon:  <LocationOnIcon sx={{ fontSize: 28 }} />,
       title: 'Our Address',
-      text:  'Pokhara-8, Gandaki Province, Nepal',
+      text:  'Patan Dhoka,Lalitpur, Bagmati Province, Nepal',
       color: '#1565C0',
     },
     {
@@ -136,10 +136,10 @@ const Contact = () => {
             }}>
               <LocationOnIcon sx={{ fontSize: 40, color: '#3949ab', mb: 1 }} />
               <Typography variant="body2" color="text.secondary">
-                Pokhara Management College
+                Patan Multiple Campus
               </Typography>
               <Typography variant="caption" color="text.disabled">
-                Pokhara-8, Gandaki Province, Nepal
+                Patan Dhoka,Lalitpur, Bagmati Province, Nepal
               </Typography>
             </Box>
           </Grid>
